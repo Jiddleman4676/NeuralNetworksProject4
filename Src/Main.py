@@ -1,5 +1,15 @@
 import numpy as np
 from FNN import FeedforwardNeuralNetwork
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from matplotlib import pyplot as plt
+import numpy as np
+
+
+
+
+
 
 def sigmoid(x, derivative=False):
     if derivative:
@@ -14,6 +24,30 @@ def identity(x, derivative=False):
     if derivative:
         return np.ones_like(x)
     return x
+
+
+X = np.random.uniform(-3, 3, 1000).reshape(-1, 1)
+Y = np.sin(X)
+
+# Define the FNN model with 1 input neuron, 10 hidden neurons, and 1 output neuron
+nn = FeedforwardNeuralNetwork(layer_sizes=[1, 10, 1], activations=[sigmoid, identity])
+
+# Train the model
+nn.train(X, Y, loss_function=mse_loss, loss_derivative=lambda y_pred, y_true: mse_loss(y_pred, y_true, derivative=True),
+         epochs=1000, learning_rate=0.01)
+
+# Generate test data for plotting
+x_plot = np.linspace(-3, 3, 100).reshape(-1, 1)
+y_plot = nn.forward(x_plot)
+
+# Plot the results
+plt.plot(X, Y, 'b.', label='Training Data (sin(x))')
+plt.plot(x_plot, y_plot, 'r-', label='FNN Approximation')
+plt.title('FNN Approximation of sin(x)')
+plt.xlabel('x')
+plt.ylabel('sin(x)')
+plt.legend()
+plt.show()
 
 
 # Generate training data
