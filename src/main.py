@@ -7,10 +7,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 
-
-
-
-
+# Test push - Andrei
 def sigmoid(x, derivative=False):
     if derivative:
         return sigmoid(x) * (1 - sigmoid(x))
