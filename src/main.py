@@ -27,11 +27,11 @@ X = np.random.uniform(-3, 3, 1000).reshape(-1, 1)
 Y = np.sin(X)
 
 # Define the FNN model with 1 input neuron, 10 hidden neurons, and 1 output neuron
-nn = FeedforwardNeuralNetwork(layer_sizes=[1, 50, 1], activations=[sigmoid, identity])
+nn = FeedforwardNeuralNetwork(layer_sizes=[1, 30, 1], activations=[sigmoid, identity])
 
 # Train the model
 nn.train(X, Y, loss_function=mse_loss, loss_derivative=lambda y_pred, y_true: mse_loss(y_pred, y_true, derivative=True),
-         epochs=200, learning_rate=0.02)
+         epochs=1000, learning_rate=0.05)
 
 # Generate test data for plotting
 x_plot = np.linspace(-3, 3, 100).reshape(-1, 1)
