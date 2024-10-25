@@ -87,6 +87,7 @@ class Layer:
 
         return np.array(grad_previous_layer)
 
+
     def update_weights(self, learning_rate, batch_size):
         """
         Updates the weights using the accumulated gradients and resets the

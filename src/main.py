@@ -108,4 +108,4 @@ test_input_vdp = np.array([[1.0, 1.0]])
 print("Prediction for Van der Pol step (1.0, 1.0):", nn_vdp.forward(test_input_vdp))
 
 
-
+#

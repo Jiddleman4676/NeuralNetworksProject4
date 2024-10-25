@@ -2,6 +2,11 @@ from layer import Layer
 
 import numpy as np
 
+
+def gd(y_pred, y_true, loss_derivative):
+    return loss_derivative(y_pred, y_true)
+
+
 class FeedforwardNeuralNetwork:
     def __init__(self, layer_sizes, activations):
         # Initialize the layers of the network
@@ -17,7 +22,7 @@ class FeedforwardNeuralNetwork:
 
     def backward(self, y_pred, y_true, loss_derivative, learning_rate):
         # Compute the initial gradient from the loss function
-        grad = loss_derivative(y_pred, y_true)
+        grad = gd(y_pred, y_true, loss_derivative)
         # Backward pass through each layer
         for layer in reversed(self.layers):
             # Propagate the gradient backwards through the layer
