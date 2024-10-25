@@ -8,9 +8,10 @@ def gd(y_pred, y_true, loss_derivative):
 
 
 class FeedforwardNeuralNetwork:
-    def __init__(self, layer_sizes, activations):
+    def __init__(self, layer_sizes, activations,batch_size):
         # Initialize the layers of the network
         self.layers = []
+        self.batch_size = batch_size
         for i in range(len(layer_sizes) - 1):
             self.layers.append(Layer(layer_sizes[i], layer_sizes[i+1], activations[i]))
 
@@ -28,12 +29,12 @@ class FeedforwardNeuralNetwork:
             # Propagate the gradient backwards through the layer
             grad = layer.backward(grad, learning_rate)
 
-    def train(self, X, Y, loss_function, loss_derivative, epochs=1000, learning_rate=0.01, batch_size=32):
+    def train(self, X, Y, loss_function, loss_derivative, epochs=1000, learning_rate=0.01):
         for epoch in range(epochs):
-            print(np.round(epoch/epochs) *100, "% done")
+            print("Epoch: ", epoch + 1, " out of ", epochs)
             indices = np.random.permutation(len(X))
-            for i in range(0, len(X), batch_size):
-                batch_indices = indices[i:i + batch_size]
+            for i in range(0, len(X), self.batch_size):
+                batch_indices = indices[i:i + self.batch_size]
                 batch_X, batch_Y = X[batch_indices], Y[batch_indices]
 
                 # Forward and backward pass for each sample in the batch
@@ -45,4 +46,4 @@ class FeedforwardNeuralNetwork:
 
                 # After batch, update weights with accumulated gradients
                 for layer in self.layers:
-                    layer.update_weights(learning_rate, batch_size)
+                    layer.update_weights(learning_rate, self.batch_size)

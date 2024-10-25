@@ -57,33 +57,6 @@ class Layer:
         # Return the activated output
         return self.activation(self.z)
 
-    #grad_output - Grad of loss with respect to the output of the current layer
-    # def backward(self, grad_output):
-    #
-    #     grad_input = []
-    #     for i in range(len(grad_output)):
-    #         grad_input.append(grad_output[i] * self.activation(self.z[i], derivative = True))
-    #
-    #     grad_input = np.array(grad_input)
-    #     #grad_input = np.clip(grad_input, -5, 5)
-    #
-    #     # Compute the gradient for weights (grad_weights)
-    #     # ie how do the weights need to change (will be used in update weights)
-    #     for i in range(self.inputs.shape[0]):
-    #         for j in range(self.weights.shape[0]):
-    #             for k in range(self.weights.shape[1]):
-    #                 self.grad_weights[j][k] += self.inputs[i][j] * grad_input[i][k]
-    #
-    #     # Compute gradient for the previous layer (excluding the bias term)
-    #     grad_previous_layer = []
-    #     for i in range(grad_input.shape[0]):
-    #         prev_layer_grad = []
-    #         for j in range(self.weights.shape[0] - 1):
-    #             prev_layer_grad.append(np.dot(grad_input[i], self.weights[j]))
-    #         grad_previous_layer.append(prev_layer_grad)
-    #
-    #     # return the gradients of the previous layer to continue propogation
-    #     return np.array(grad_previous_layer)
     def backward(self, grad_output):
         """
         First computes the gradients of the inputs

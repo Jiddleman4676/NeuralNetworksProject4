@@ -64,7 +64,7 @@ if(run_sin):
     Y = np.sin(X)
 
     # Define the FNN model with 1 input neuron, 10 hidden neurons, and 1 output neuron
-    nn = FeedforwardNeuralNetwork(layer_sizes=[1, 30, 1], activations=[sigmoid, identity])
+    nn = FeedforwardNeuralNetwork(layer_sizes=[1, 30, 1], activations=[sigmoid, identity],batch_size=32)
 
     # Train the model
     nn.train(X, Y, loss_function=mse_loss, loss_derivative=lambda y_pred, y_true: mse_loss(y_pred, y_true, derivative=True),
@@ -167,6 +167,8 @@ if(run_vander):
 if(run_digits):
     LEARNING_RATE = .1
     EPOCHS = 2
+    BATCH_SIZE = 16
+    TEST_SIZE = 10000
 
     # Hand written characters
     # https://www.openml.org/d/554
@@ -180,9 +182,14 @@ if(run_digits):
     y_train = y_train.astype(int)
     y_test = y_test.astype(int)
 
+    # random sample of test data
+    sample_indices_test = np.random.choice(X_test.shape[0], TEST_SIZE, replace=False)
+    X_test = X_test[sample_indices_test]
+    y_test = y_test[sample_indices_test]
+
     # Define the FNN model with 784 input neuron, 64 hidden neurons in 2 layers, and 10 output neuron
 
-    nn = FeedforwardNeuralNetwork(layer_sizes=[784, 64, 64, 10], activations=[sigmoid,sigmoid, sigmoid])
+    nn = FeedforwardNeuralNetwork(layer_sizes=[784, 64, 64, 10], activations=[sigmoid,sigmoid, sigmoid],batch_size=BATCH_SIZE)
 
     print("training")
     start_time = time.time()  # Record start time
@@ -211,13 +218,13 @@ if(run_digits):
 
     # Plotting correct vs incorrect classifications for each digit
     plt.figure(figsize=(10, 6))
-    plt.bar(digits - 0.2, correct_counts, width=0.4, label="Correct", color="blue")
-    plt.bar(digits + 0.2, incorrect_counts, width=0.4, label="Incorrect", color="red")
+    plt.bar(digits, correct_counts, label="Correct", color="blue")
+    plt.bar(digits, incorrect_counts, bottom=correct_counts, label="Incorrect", color="red")
 
     # Labeling the plot
     plt.xlabel("Digit")
     plt.ylabel("Number of Classifications")
-    plt.title(f"Correct vs Incorrect | N: {len(y_test)}, LR: {LEARNING_RATE}, E: {EPOCHS}, T:{training_duration},Correct: {np.round(np.sum(correct_counts)/len(X_train) *100)}%")
+    plt.title(f"Correct vs Incorrect | N: {len(X_train)}, LR: {LEARNING_RATE}, E: {EPOCHS}, T:{training_duration} min, B:{BATCH_SIZE},Correct: {np.round((np.sum(correct_counts)/len(y_test)) *100)}%")
     plt.xticks(digits)
     plt.legend()
 
