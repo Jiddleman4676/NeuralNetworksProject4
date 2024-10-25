@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 from matplotlib import pyplot as plt
 import numpy as np
+from scipy.integrate import odeint
 
 
 #Store the activation functions along with their derivatives
@@ -52,7 +53,7 @@ nn = FeedforwardNeuralNetwork(layer_sizes=[1, 30, 1], activations=[sigmoid, iden
 
 # Train the model
 nn.train(X, Y, loss_function=mse_loss, loss_derivative=lambda y_pred, y_true: mse_loss(y_pred, y_true, derivative=True),
-         epochs=1000, learning_rate=0.05)
+         epochs=100, learning_rate=0.05)
 
 # Generate test data for plotting
 x_plot = np.linspace(-3, 3, 100).reshape(-1, 1)
@@ -68,44 +69,80 @@ plt.legend()
 plt.show()
 
 
-# Generate training data
-X = np.random.uniform(-3, 3, 1000).reshape(-1, 1)
-Y = np.sin(X)
+def ode_model(x, t):
+    return [x[1], -x[0] + (1 - x[0]**2) * x[1]]
 
-# Define the FNN model with 1 input neuron, 10 hidden neurons, and 1 output neuron
+def Phi(x):
+    t = np.linspace(0, 0.05, 101)
+    sol = odeint(ode_model, x, t)
+    return sol[-1]
 
-nn = FeedforwardNeuralNetwork(layer_sizes=[1, 10, 1], activations=[sigmoid, identity])
+class Net(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.hd1 = torch.nn.Linear(2, 64)
+        self.hd2 = torch.nn.Linear(64, 64)
+        self.hd3 = torch.nn.Linear(64, 64)
+        self.output = torch.nn.Linear(64, 2)
 
+    def forward(self, x):
+        a1 = self.hd1(x)
+        h1 = torch.nn.functional.relu(a1)
+        a2 = self.hd2(h1)
+        h2 = torch.nn.functional.relu(a2)
+        a3 = self.hd3(h2)  # Corrected from self.hd2 to self.hd3
+        h3 = torch.nn.functional.relu(a3)
+        y = self.output(h3)
+        return y
 
-# Train the model
-nn.train(X, Y, loss_function=mse_loss, loss_derivative=lambda y_pred, y_true: mse_loss(y_pred, y_true, derivative=True),
-         epochs=10, learning_rate=0.01)
+net = Net()
 
-# Evaluate
-test_input = np.array([[0.5]])
-print("Prediction for sin(0.5):", nn.forward(test_input))
+# Compute the samples
+# X is a set of samples in a 2D plane
+# Y consists of the corresponding outputs of the samples in X
+N = 101  # number of samples in each dimension
+samples_x1 = torch.linspace(-3, 3, N)
+samples_x2 = torch.linspace(-3, 3, N)
+X = torch.empty((0, 2))
 
-# Generate training data for Van der Pol system
-def van_der_pol_sample(x1, x2):
-    dt = 0.5
-    x1_next = x1 + x2 * dt
-    x2_next = x2 + (-x1 + (1 - x2 ** 2) * x2) * dt
-    return np.array([x1_next, x2_next])
+for x1 in samples_x1:
+    for x2 in samples_x2:
+        sample_x = torch.Tensor([[x1, x2]])
+        X = torch.cat((X, sample_x))
 
-X_vdp = np.random.uniform(-3, 3, (1000, 2))
-Y_vdp = np.array([van_der_pol_sample(x[0], x[1]) for x in X_vdp])
+Y = torch.empty((0, 2))
+for x in X:
+    y = Phi(x)
+    sample_y = torch.Tensor([[y[0], y[1]]])
+    Y = torch.cat((Y, sample_y))
 
-# Define the FNN model with 2 input neurons, 10 hidden neurons, and 2 output neurons
-nn_vdp = FeedforwardNeuralNetwork(layer_sizes=[2, 10, 2], activations=[sigmoid, identity])
+hat_Y = net(X)
+loss_fn = torch.nn.MSELoss()
+optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
 
+for epoch in range(600):
+    hat_Y = net(X)
+    loss = loss_fn(hat_Y, Y)
+    net.zero_grad()
+    loss.backward()
+    optimizer.step()
 
-# Train the model with mini-batch SGD
-nn_vdp.train(X_vdp, Y_vdp, loss_function=mse_loss, loss_derivative=lambda y_pred, y_true: mse_loss(y_pred, y_true, derivative=True),
-             epochs=10, learning_rate=0.01, batch_size=32)
+# Test 1
+x0 = [1.25, 2.35]
+for i in range(150):
+    y = Phi(x0)
+    plt.plot(y[0], y[1], 'b.')
+    x0 = y
+    x0 = torch.Tensor(x0)
 
-# Evaluate
-test_input_vdp = np.array([[1.0, 1.0]])
-print("Prediction for Van der Pol step (1.0, 1.0):", nn_vdp.forward(test_input_vdp))
+for i in range(150):
+    y = net(x0)
+    np_y = y.data.numpy()
+    plt.plot(np_y[0], np_y[1], 'r.')
+    x0 = y
 
+plt.xlabel('x_1')
+plt.ylabel('x_2')
 
-#
+# Test 2
+plt.show()
