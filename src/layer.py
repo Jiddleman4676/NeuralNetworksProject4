@@ -60,9 +60,9 @@ class Layer:
     #grad_output - Grad of loss with respect to the output of the current layer
     def backward(self, grad_output):
         """
-        Performs the backward pass, computing the gradient of the input and
-        the gradient of the weights (grad_weights). The gradients are accumulated
-        in grad_weights for weight updates.
+        First computes the gradients of the inputs
+        Then computes the gradient of the weights (grad_weights).
+        Then it is accumulated in grad_weights for the update after the mini batch is completed.
         """
         grad_input = []
         for i in range(len(grad_output)):
@@ -70,7 +70,7 @@ class Layer:
 
         grad_input = np.array(grad_input)
 
-        # Manually compute the gradient for weights (grad_weights)
+        # Compute the gradient for weights (grad_weights)
         # ie how do the weights need to change (will be used in update weights)
         for i in range(self.inputs.shape[0]):
             for j in range(self.weights.shape[0]):
@@ -85,20 +85,20 @@ class Layer:
                 prev_layer_grad.append(np.dot(grad_input[i], self.weights[j]))
             grad_previous_layer.append(prev_layer_grad)
 
+        # return the gradients of the previous layer to continue propogation
         return np.array(grad_previous_layer)
 
 
     def update_weights(self, learning_rate, batch_size):
         """
-        Updates the weights using the accumulated gradients and resets the
-        gradient accumulator for the next training step.
+        After the mini batch is complete, all the weights are updated
+        Then the acc is reset
         """
         for i in range(len(self.weights)):
             for j in range(len(self.weights[0])):
-                # Update each weight based on the gradient and learning rate
+                # Update each weight
                 self.weights[i][j] -= learning_rate * (self.grad_weights[i][j] / batch_size)
 
-        # Reset gradient accumulator after updating weights
-        for i in range(len(self.grad_weights)):
-            for j in range(len(self.grad_weights[0])):
-                self.grad_weights[i][j] = 0
+        # Reset the accumulator
+        self.grad_weights.fill(0)
+

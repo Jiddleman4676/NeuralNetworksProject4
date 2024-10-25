@@ -21,7 +21,7 @@ class FeedforwardNeuralNetwork:
         return x
 
     def backward(self, y_pred, y_true, loss_derivative, learning_rate):
-        # Compute the initial gradient from the loss function
+        # Compute the gradient of the loss with respect to the network's output
         grad = gd(y_pred, y_true, loss_derivative)
         # Backward pass through each layer
         for layer in reversed(self.layers):
