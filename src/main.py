@@ -64,7 +64,7 @@ if(run_sin):
     Y = np.sin(X)
 
     # Define the FNN model with 1 input neuron, 10 hidden neurons, and 1 output neuron
-    nn = FeedforwardNeuralNetwork(layer_sizes=[1, 30, 1], activations=[sigmoid, identity],batch_size=32)
+    nn = FeedforwardNeuralNetwork(layer_sizes=[1, 30, 1], activations=[sigmoid, identity])
 
     # Train the model
     nn.train(X, Y, loss_function=mse_loss, loss_derivative=lambda y_pred, y_true: mse_loss(y_pred, y_true, derivative=True),
@@ -165,9 +165,8 @@ if(run_vander):
     plt.show()
 
 if(run_digits):
-    LEARNING_RATE = .1
+    LEARNING_RATE = .5
     EPOCHS = 2
-    BATCH_SIZE = 16
     TEST_SIZE = 10000
 
     # Hand written characters
@@ -189,7 +188,7 @@ if(run_digits):
 
     # Define the FNN model with 784 input neuron, 64 hidden neurons in 2 layers, and 10 output neuron
 
-    nn = FeedforwardNeuralNetwork(layer_sizes=[784, 64, 64, 10], activations=[sigmoid,sigmoid, sigmoid],batch_size=BATCH_SIZE)
+    nn = FeedforwardNeuralNetwork(layer_sizes=[784, 64, 64, 10], activations=[sigmoid,sigmoid, sigmoid])
 
     print("training")
     start_time = time.time()  # Record start time
@@ -224,7 +223,7 @@ if(run_digits):
     # Labeling the plot
     plt.xlabel("Digit")
     plt.ylabel("Number of Classifications")
-    plt.title(f"Correct vs Incorrect | N: {len(X_train)}, LR: {LEARNING_RATE}, E: {EPOCHS}, T:{training_duration} min, B:{BATCH_SIZE},Correct: {np.round((np.sum(correct_counts)/len(y_test)) *100)}%")
+    plt.title(f"Correct vs Incorrect | N: {len(X_train)}, LR: {LEARNING_RATE}, E: {EPOCHS}, T:{training_duration} min,Correct: {np.round((np.sum(correct_counts)/len(y_test)) *100)}%")
     plt.xticks(digits)
     plt.legend()
 
