@@ -128,7 +128,7 @@ y_train = y_train.astype(int)
 y_test = y_test.astype(int)
 
 # sample down from 21000 to x data points
-num_samples = 10
+num_samples = 100
 sample_indices_train = np.random.choice(X_train.shape[0], num_samples, replace=False)
 X_train_sampled = X_train[sample_indices_train]
 y_train_sampled = y_train[sample_indices_train]
@@ -139,18 +139,21 @@ y_test_sampled = y_test[sample_indices_test]
 
 # Define the FNN model with 784 input neuron, 64 hidden neurons in 2 layers, and 10 output neuron
 
-nn = FeedforwardNeuralNetwork(layer_sizes=[784, 64, 10], activations=[sigmoid, identity])
+nn = FeedforwardNeuralNetwork(layer_sizes=[784, 64, 64, 10], activations=[logsoftmax,logsoftmax, identity])
 
 print("training")
 nn.train(X_train_sampled, y_train_sampled, loss_function=NNN_loss,
          loss_derivative=lambda y_pred, y_true: NNN_loss(y_pred, y_true, derivative=True),
-         epochs=10, learning_rate=0.01)
+         epochs=1, learning_rate=0.1)
 
 print("test")
 
+# TODO: get the nn to print real values
 
 def test_handwritten(X_test, y_test):
     y_pred = nn.forward(X_test)
+
+    print(y_pred)
 
     correct = 0
     incorrect = 0
