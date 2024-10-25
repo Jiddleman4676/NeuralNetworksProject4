@@ -69,6 +69,7 @@ class Layer:
             grad_input.append(grad_output[i] * self.activation(self.z[i], derivative = True))
 
         grad_input = np.array(grad_input)
+        #grad_input = np.clip(grad_input, -5, 5)
 
         # Compute the gradient for weights (grad_weights)
         # ie how do the weights need to change (will be used in update weights)

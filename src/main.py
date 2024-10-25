@@ -1,4 +1,6 @@
 import numpy as np
+from sympy import false
+
 from FNN import FeedforwardNeuralNetwork
 import torch
 import torch.nn as nn
@@ -15,6 +17,8 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 #Store the activation functions along with their derivatives
 def sigmoid(x, derivative=False):
+    x = np.clip(x, -100, 100) #prevent weights from overflowing
+    x += + 1e-10 #prevent divide by 0
     if derivative:
         return sigmoid(x) * (1 - sigmoid(x))
     return 1 / (1 + np.exp(-x))
@@ -26,6 +30,8 @@ def mse_loss(y_pred, y_true, derivative=False):
 
 
 def logsoftmax(x, derivative=False):
+    x = np.clip(x, -100, 100) #prevent weights from overflowing
+    x += + 1e-10 #prevent divide by 0
     exp_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
     log_softmax = np.log(exp_x / np.sum(exp_x, axis=-1, keepdims=True))
 
@@ -49,29 +55,33 @@ def identity(x, derivative=False):
         return np.ones_like(x)
     return x
 
+run_sin = False
+run_vander = False
+run_digits = True
 
-X = np.random.uniform(-3, 3, 1000).reshape(-1, 1)
-Y = np.sin(X)
+if(run_sin):
+    X = np.random.uniform(-3, 3, 1000).reshape(-1, 1)
+    Y = np.sin(X)
 
-# Define the FNN model with 1 input neuron, 10 hidden neurons, and 1 output neuron
-nn = FeedforwardNeuralNetwork(layer_sizes=[1, 30, 1], activations=[sigmoid, identity])
+    # Define the FNN model with 1 input neuron, 10 hidden neurons, and 1 output neuron
+    nn = FeedforwardNeuralNetwork(layer_sizes=[1, 30, 1], activations=[sigmoid, identity])
 
-# Train the model
-nn.train(X, Y, loss_function=mse_loss, loss_derivative=lambda y_pred, y_true: mse_loss(y_pred, y_true, derivative=True),
-         epochs=100, learning_rate=0.05)
+    # Train the model
+    nn.train(X, Y, loss_function=mse_loss, loss_derivative=lambda y_pred, y_true: mse_loss(y_pred, y_true, derivative=True),
+             epochs=100, learning_rate=0.05)
 
-# Generate test data for plotting
-x_plot = np.linspace(-3, 3, 100).reshape(-1, 1)
-y_plot = nn.forward(x_plot)
+    # Generate test data for plotting
+    x_plot = np.linspace(-3, 3, 100).reshape(-1, 1)
+    y_plot = nn.forward(x_plot)
 
-# Plot the results
-plt.plot(X, Y, 'b.', label='Training Data (sin(x))')
-plt.plot(x_plot, y_plot, 'r-', label='FNN Approximation')
-plt.title('FNN Approximation of sin(x)')
-plt.xlabel('x')
-plt.ylabel('sin(x)')
-plt.legend()
-plt.show()
+    # Plot the results
+    plt.plot(X, Y, 'b.', label='Training Data (sin(x))')
+    plt.plot(x_plot, y_plot, 'r-', label='FNN Approximation')
+    plt.title('FNN Approximation of sin(x)')
+    plt.xlabel('x')
+    plt.ylabel('sin(x)')
+    plt.legend()
+    plt.show()
 
 
 def ode_model(x, t):
@@ -100,106 +110,107 @@ class Net(torch.nn.Module):
         y = self.output(h3)
         return y
 
-net = Net()
+if(run_vander):
+    net = Net()
 
-# Compute the samples
-# X is a set of samples in a 2D plane
-# Y consists of the corresponding outputs of the samples in X
-N = 101  # number of samples in each dimension
-samples_x1 = torch.linspace(-3, 3, N)
-samples_x2 = torch.linspace(-3, 3, N)
-X = torch.empty((0, 2))
+    # Compute the samples
+    # X is a set of samples in a 2D plane
+    # Y consists of the corresponding outputs of the samples in X
+    N = 101  # number of samples in each dimension
+    samples_x1 = torch.linspace(-3, 3, N)
+    samples_x2 = torch.linspace(-3, 3, N)
+    X = torch.empty((0, 2))
 
-for x1 in samples_x1:
-    for x2 in samples_x2:
-        sample_x = torch.Tensor([[x1, x2]])
-        X = torch.cat((X, sample_x))
+    for x1 in samples_x1:
+        for x2 in samples_x2:
+            sample_x = torch.Tensor([[x1, x2]])
+            X = torch.cat((X, sample_x))
 
-Y = torch.empty((0, 2))
-for x in X:
-    y = Phi(x)
-    sample_y = torch.Tensor([[y[0], y[1]]])
-    Y = torch.cat((Y, sample_y))
+    Y = torch.empty((0, 2))
+    for x in X:
+        y = Phi(x)
+        sample_y = torch.Tensor([[y[0], y[1]]])
+        Y = torch.cat((Y, sample_y))
 
-hat_Y = net(X)
-loss_fn = torch.nn.MSELoss()
-optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
-
-for epoch in range(600):
     hat_Y = net(X)
-    loss = loss_fn(hat_Y, Y)
-    net.zero_grad()
-    loss.backward()
-    optimizer.step()
+    loss_fn = torch.nn.MSELoss()
+    optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
 
-# Test 1
-x0 = [1.25, 2.35]
-for i in range(150):
-    y = Phi(x0)
-    plt.plot(y[0], y[1], 'b.')
-    x0 = y
-    x0 = torch.Tensor(x0)
+    for epoch in range(600):
+        hat_Y = net(X)
+        loss = loss_fn(hat_Y, Y)
+        net.zero_grad()
+        loss.backward()
+        optimizer.step()
 
-for i in range(150):
-    y = net(x0)
-    np_y = y.data.numpy()
-    plt.plot(np_y[0], np_y[1], 'r.')
-    x0 = y
+    # Test 1
+    x0 = [1.25, 2.35]
+    for i in range(150):
+        y = Phi(x0)
+        plt.plot(y[0], y[1], 'b.')
+        x0 = y
+        x0 = torch.Tensor(x0)
 
-plt.xlabel('x_1')
-plt.ylabel('x_2')
+    for i in range(150):
+        y = net(x0)
+        np_y = y.data.numpy()
+        plt.plot(np_y[0], np_y[1], 'r.')
+        x0 = y
 
-# Test 2
-plt.show()
+    plt.xlabel('x_1')
+    plt.ylabel('x_2')
 
-# Hand written characters
-# https://www.openml.org/d/554
-X, y = fetch_openml("mnist_784", version=1, return_X_y=True, as_frame=False,parser="liac-arff")
-X = X / 255.0 # normalize to 0 to 1
+    # Test 2
+    plt.show()
 
-# Split data into train partition and test partition
+if(run_digits):
+    # Hand written characters
+    # https://www.openml.org/d/554
+    X, y = fetch_openml("mnist_784", version=1, return_X_y=True, as_frame=False,parser="liac-arff")
+    X = X / 255.0 # normalize to 0 to 1
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0, test_size=0.7)
+    # Split data into train partition and test partition
 
-#convert strings to ints
-y_train = y_train.astype(int)
-y_test = y_test.astype(int)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0, test_size=0.7)
 
-# sample down from 21000 to x data points
-num_samples = 100
-sample_indices_train = np.random.choice(X_train.shape[0], num_samples, replace=False)
-X_train_sampled = X_train[sample_indices_train]
-y_train_sampled = y_train[sample_indices_train]
+    #convert strings to ints
+    y_train = y_train.astype(int)
+    y_test = y_test.astype(int)
 
-sample_indices_test = np.random.choice(X_test.shape[0], num_samples, replace=False)
-X_test_sampled = X_test[sample_indices_test]
-y_test_sampled = y_test[sample_indices_test]
+    # sample down from 21000 to x data points
+    num_samples = 1000
+    sample_indices_train = np.random.choice(X_train.shape[0], num_samples, replace=False)
+    X_train_sampled = X_train[sample_indices_train]
+    y_train_sampled = y_train[sample_indices_train]
 
-# Define the FNN model with 784 input neuron, 64 hidden neurons in 2 layers, and 10 output neuron
+    sample_indices_test = np.random.choice(X_test.shape[0], num_samples, replace=False)
+    X_test_sampled = X_test[sample_indices_test]
+    y_test_sampled = y_test[sample_indices_test]
 
-nn = FeedforwardNeuralNetwork(layer_sizes=[784, 64, 64, 10], activations=[logsoftmax,logsoftmax, identity])
+    # Define the FNN model with 784 input neuron, 64 hidden neurons in 2 layers, and 10 output neuron
 
-print("training")
-nn.train(X_train_sampled, y_train_sampled, loss_function=NNN_loss,
-         loss_derivative=lambda y_pred, y_true: NNN_loss(y_pred, y_true, derivative=True),
-         epochs=1, learning_rate=0.1)
+    nn = FeedforwardNeuralNetwork(layer_sizes=[784, 64, 64, 10], activations=[sigmoid,sigmoid, sigmoid])
 
-print("test")
+    print("training")
+    nn.train(X_train_sampled, y_train_sampled, loss_function=NNN_loss,
+             loss_derivative=lambda y_pred, y_true: NNN_loss(y_pred, y_true, derivative=True),
+             epochs=1, learning_rate=0.1)
 
-# TODO: get the nn to print real values
+    print("test")
 
-def test_handwritten(X_test, y_test):
-    y_pred = nn.forward(X_test)
+    def test_handwritten(X_test, y_test):
+        y_pred = nn.forward(X_test)
 
-    print(y_pred)
+        print(y_pred)
 
-    correct = 0
-    incorrect = 0
-    for i in range(len(y_test)):
-        if(y_test[i] == np.argmax(y_pred[i])):
-            correct += 1
-        else:
-            incorrect += 1
-    print("correct:", correct, " incorrect:", incorrect)
+        correct = 0
+        incorrect = 0
+        for i in range(len(y_test)):
+            print(y_test[i], np.argmax(y_pred[i]))
+            if(y_test[i] == np.argmax(y_pred[i])):
+                correct += 1
+            else:
+                incorrect += 1
+        print("correct:", correct, " incorrect:", incorrect)
 
-test_handwritten(X_test_sampled, y_test_sampled)
+    test_handwritten(X_test_sampled, y_test_sampled)
