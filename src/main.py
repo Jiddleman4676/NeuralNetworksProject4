@@ -1,5 +1,4 @@
-import numpy as np
-from sympy import false
+import time
 
 from FNN import FeedforwardNeuralNetwork
 import torch
@@ -59,6 +58,7 @@ run_sin = False
 run_vander = False
 run_digits = True
 
+
 if(run_sin):
     X = np.random.uniform(-3, 3, 1000).reshape(-1, 1)
     Y = np.sin(X)
@@ -110,6 +110,7 @@ class Net(torch.nn.Module):
         y = self.output(h3)
         return y
 
+# VANDER_POL
 if(run_vander):
     net = Net()
 
@@ -164,53 +165,62 @@ if(run_vander):
     plt.show()
 
 if(run_digits):
+    LEARNING_RATE = .1
+    EPOCHS = 2
+
     # Hand written characters
     # https://www.openml.org/d/554
     X, y = fetch_openml("mnist_784", version=1, return_X_y=True, as_frame=False,parser="liac-arff")
     X = X / 255.0 # normalize to 0 to 1
 
     # Split data into train partition and test partition
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0, test_size=0.7)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0, test_size=0.5)
 
     #convert strings to ints
     y_train = y_train.astype(int)
     y_test = y_test.astype(int)
-
-    # sample down from 21000 to x data points
-    num_samples = 1000
-    sample_indices_train = np.random.choice(X_train.shape[0], num_samples, replace=False)
-    X_train_sampled = X_train[sample_indices_train]
-    y_train_sampled = y_train[sample_indices_train]
-
-    sample_indices_test = np.random.choice(X_test.shape[0], num_samples, replace=False)
-    X_test_sampled = X_test[sample_indices_test]
-    y_test_sampled = y_test[sample_indices_test]
 
     # Define the FNN model with 784 input neuron, 64 hidden neurons in 2 layers, and 10 output neuron
 
     nn = FeedforwardNeuralNetwork(layer_sizes=[784, 64, 64, 10], activations=[sigmoid,sigmoid, sigmoid])
 
     print("training")
-    nn.train(X_train_sampled, y_train_sampled, loss_function=NNN_loss,
+    start_time = time.time()  # Record start time
+
+    nn.train(X_train, y_train, loss_function=NNN_loss,
              loss_derivative=lambda y_pred, y_true: NNN_loss(y_pred, y_true, derivative=True),
-             epochs=1, learning_rate=0.1)
+             epochs=EPOCHS, learning_rate=LEARNING_RATE)
+
+    end_time = time.time()  # Record end time
+    training_duration = np.round((end_time - start_time) / 60)  # Calculate duration
 
     print("test")
 
-    def test_handwritten(X_test, y_test):
-        y_pred = nn.forward(X_test)
+    correct_counts = np.zeros(10)
+    incorrect_counts = np.zeros(10)
 
-        print(y_pred)
+    for i in range(len(y_test)):
+        y_pred = nn.forward(X_test[i])
+        if np.argmax(y_pred)  ==  y_test[i]:
+            correct_counts[y_test[i]] += 1
+        else:
+            incorrect_counts[y_test[i]] += 1
 
-        correct = 0
-        incorrect = 0
-        for i in range(len(y_test)):
-            print(y_test[i], np.argmax(y_pred[i]))
-            if(y_test[i] == np.argmax(y_pred[i])):
-                correct += 1
-            else:
-                incorrect += 1
-        print("correct:", correct, " incorrect:", incorrect)
+    print("correct: ", np.sum(correct_counts), "incorrect: ", np.sum(incorrect_counts))
+    digits = np.arange(10)
 
-    test_handwritten(X_test_sampled, y_test_sampled)
+    # Plotting correct vs incorrect classifications for each digit
+    plt.figure(figsize=(10, 6))
+    plt.bar(digits - 0.2, correct_counts, width=0.4, label="Correct", color="blue")
+    plt.bar(digits + 0.2, incorrect_counts, width=0.4, label="Incorrect", color="red")
+
+    # Labeling the plot
+    plt.xlabel("Digit")
+    plt.ylabel("Number of Classifications")
+    plt.title(f"Correct vs Incorrect | N: {len(y_test)}, LR: {LEARNING_RATE}, E: {EPOCHS}, T:{training_duration},Correct: {np.round(np.sum(correct_counts)/len(X_train) *100)}%")
+    plt.xticks(digits)
+    plt.legend()
+
+    # Show plot
+    plt.show()
+

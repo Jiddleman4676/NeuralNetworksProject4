@@ -30,6 +30,7 @@ class FeedforwardNeuralNetwork:
 
     def train(self, X, Y, loss_function, loss_derivative, epochs=1000, learning_rate=0.01, batch_size=32):
         for epoch in range(epochs):
+            print(np.round(epoch/epochs) *100, "% done")
             indices = np.random.permutation(len(X))
             for i in range(0, len(X), batch_size):
                 batch_indices = indices[i:i + batch_size]

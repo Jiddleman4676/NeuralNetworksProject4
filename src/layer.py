@@ -58,37 +58,52 @@ class Layer:
         return self.activation(self.z)
 
     #grad_output - Grad of loss with respect to the output of the current layer
+    # def backward(self, grad_output):
+    #
+    #     grad_input = []
+    #     for i in range(len(grad_output)):
+    #         grad_input.append(grad_output[i] * self.activation(self.z[i], derivative = True))
+    #
+    #     grad_input = np.array(grad_input)
+    #     #grad_input = np.clip(grad_input, -5, 5)
+    #
+    #     # Compute the gradient for weights (grad_weights)
+    #     # ie how do the weights need to change (will be used in update weights)
+    #     for i in range(self.inputs.shape[0]):
+    #         for j in range(self.weights.shape[0]):
+    #             for k in range(self.weights.shape[1]):
+    #                 self.grad_weights[j][k] += self.inputs[i][j] * grad_input[i][k]
+    #
+    #     # Compute gradient for the previous layer (excluding the bias term)
+    #     grad_previous_layer = []
+    #     for i in range(grad_input.shape[0]):
+    #         prev_layer_grad = []
+    #         for j in range(self.weights.shape[0] - 1):
+    #             prev_layer_grad.append(np.dot(grad_input[i], self.weights[j]))
+    #         grad_previous_layer.append(prev_layer_grad)
+    #
+    #     # return the gradients of the previous layer to continue propogation
+    #     return np.array(grad_previous_layer)
     def backward(self, grad_output):
         """
         First computes the gradients of the inputs
         Then computes the gradient of the weights (grad_weights).
         Then it is accumulated in grad_weights for the update after the mini batch is completed.
         """
-        grad_input = []
-        for i in range(len(grad_output)):
-            grad_input.append(grad_output[i] * self.activation(self.z[i], derivative = True))
 
-        grad_input = np.array(grad_input)
-        #grad_input = np.clip(grad_input, -5, 5)
+        # grad of current layers output with respect to its input
+        grad_input = grad_output * self.activation(self.z, derivative=True)  # Shape: (batch_size, output_size)
 
         # Compute the gradient for weights (grad_weights)
         # ie how do the weights need to change (will be used in update weights)
-        for i in range(self.inputs.shape[0]):
-            for j in range(self.weights.shape[0]):
-                for k in range(self.weights.shape[1]):
-                    self.grad_weights[j][k] += self.inputs[i][j] * grad_input[i][k]
+        grad_weights_update = np.dot(self.inputs.T, grad_input)
+        self.grad_weights += grad_weights_update  # Accumulate grads over mini-batch
 
         # Compute gradient for the previous layer (excluding the bias term)
-        grad_previous_layer = []
-        for i in range(grad_input.shape[0]):
-            prev_layer_grad = []
-            for j in range(self.weights.shape[0] - 1):
-                prev_layer_grad.append(np.dot(grad_input[i], self.weights[j]))
-            grad_previous_layer.append(prev_layer_grad)
+        grad_previous_layer = np.dot(grad_input, self.weights[:-1].T)  # Shape: (batch_size, input_size)
 
-        # return the gradients of the previous layer to continue propogation
-        return np.array(grad_previous_layer)
-
+        # Return gradient to propagate to the previous layer
+        return grad_previous_layer
 
     def update_weights(self, learning_rate, batch_size):
         """
