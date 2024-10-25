@@ -16,6 +16,10 @@ def dot_product(a, b):
     return result
 
 class Layer:
+
+    #input_size - number of neurons in the previous layer
+    #output_size - number of neurons in the next layer
+
     def __init__(self, input_size, output_size, activation):
         """
         Initializes the layer by setting the weights, activation function, and
@@ -23,8 +27,10 @@ class Layer:
         term for bias.
         """
         self.z = None
+        #set the number of weights + 1 to absorb the bias
         self.weights = np.random.randn(input_size + 1, output_size) * 0.1
         self.activation = activation
+        #will store the accumulated grads for the weights
         self.grad_weights = np.zeros_like(self.weights)
         self.inputs = None
 
@@ -34,6 +40,7 @@ class Layer:
         computes the dot product of the inputs and weights, applies the activation function,
         and returns the result.
         """
+        #turn row vector into column vector
         if len(inputs.shape) == 1:
             inputs = inputs.reshape(1, len(inputs))
 
@@ -50,6 +57,7 @@ class Layer:
         # Return the activated output
         return self.activation(self.z)
 
+    #grad_output - Grad of loss with respect to the output of the current layer
     def backward(self, grad_output):
         """
         Performs the backward pass, computing the gradient of the input and
@@ -63,6 +71,7 @@ class Layer:
         grad_input = np.array(grad_input)
 
         # Manually compute the gradient for weights (grad_weights)
+        # ie how do the weights need to change (will be used in update weights)
         for i in range(self.inputs.shape[0]):
             for j in range(self.weights.shape[0]):
                 for k in range(self.weights.shape[1]):

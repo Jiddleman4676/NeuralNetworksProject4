@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 
-# Test push - Andrei
+#Store the activation functions along with their derivatives
 def sigmoid(x, derivative=False):
     if derivative:
         return sigmoid(x) * (1 - sigmoid(x))
@@ -17,6 +17,27 @@ def mse_loss(y_pred, y_true, derivative=False):
     if derivative:
         return 2 * (y_pred - y_true) / len(y_true)
     return np.mean((y_pred - y_true) ** 2)
+
+
+def logsoftmax(x, derivative=False):
+    exp_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
+    log_softmax = np.log(exp_x / np.sum(exp_x, axis=-1, keepdims=True))
+
+    if derivative:
+        softmax_x = np.exp(log_softmax)
+        return softmax_x * (1 - softmax_x)
+    return log_softmax
+
+
+def NNN_loss(y_pred, y_true, derivative=False):
+
+    if derivative:
+        grad = np.copy(y_pred)
+        grad[range(len(y_pred)), y_true] -= 1
+        return grad / len(y_pred)  # Gradient with respect to the input
+
+    return np.mean(-y_pred[range(len(y_pred)), y_true])
+
 def identity(x, derivative=False):
     if derivative:
         return np.ones_like(x)
@@ -85,3 +106,6 @@ nn_vdp.train(X_vdp, Y_vdp, loss_function=mse_loss, loss_derivative=lambda y_pred
 # Evaluate
 test_input_vdp = np.array([[1.0, 1.0]])
 print("Prediction for Van der Pol step (1.0, 1.0):", nn_vdp.forward(test_input_vdp))
+
+
+
