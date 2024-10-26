@@ -107,9 +107,17 @@ class FeedforwardNeuralNetwork:
             for i in reversed(range(len(self.layers))):
                 layer = self.layers[i]
                 delta = layer.backward(delta, activations[i], inputs[i])
+        self.gd(batch_size)
 
-        # Update weights after processing the batch
+    def gd(self, batch_size):
+        """
+        Perform gradient descent to update the parameters (weights) of the neural network.
+
+        Parameters:
+        - batch_size (int): Number of samples in the batch (for averaging gradients).
+        """
         for layer in self.layers:
+            # Update weights using the computed gradients, learning rate, and regularization term
             layer.update_weights(
                 learning_rate=self.learning_rate,
                 batch_size=batch_size,
