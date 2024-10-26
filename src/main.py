@@ -165,9 +165,10 @@ if(run_vander):
     plt.show()
 
 if(run_digits):
-    LEARNING_RATE = .5
-    EPOCHS = 2
+    LEARNING_RATE = 1
+    EPOCHS = 30
     TEST_SIZE = 10000
+    layer_sizes = [784, 128, 128, 10]
 
     # Hand written characters
     # https://www.openml.org/d/554
@@ -175,7 +176,7 @@ if(run_digits):
     X = X / 255.0 # normalize to 0 to 1
 
     # Split data into train partition and test partition
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0, test_size=0.5)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0, test_size=0.25)
 
     #convert strings to ints
     y_train = y_train.astype(int)
@@ -188,9 +189,10 @@ if(run_digits):
 
     # Define the FNN model with 784 input neuron, 64 hidden neurons in 2 layers, and 10 output neuron
 
-    nn = FeedforwardNeuralNetwork(layer_sizes=[784, 64, 64, 10], activations=[sigmoid,sigmoid, sigmoid])
+    nn = FeedforwardNeuralNetwork(layer_sizes=layer_sizes, activations=[sigmoid,sigmoid,sigmoid])
 
     print("training")
+    print(f"Layers: {layer_sizes[1:-1]} N: {len(X_train)}, LR: {LEARNING_RATE}, E: {EPOCHS}")
     start_time = time.time()  # Record start time
 
     nn.train(X_train, y_train, loss_function=NNN_loss,
@@ -207,6 +209,8 @@ if(run_digits):
 
     for i in range(len(y_test)):
         y_pred = nn.forward(X_test[i])
+        if np.random.randint(1, 1000) == 1:
+                print(y_pred)
         if np.argmax(y_pred)  ==  y_test[i]:
             correct_counts[y_test[i]] += 1
         else:
@@ -223,7 +227,7 @@ if(run_digits):
     # Labeling the plot
     plt.xlabel("Digit")
     plt.ylabel("Number of Classifications")
-    plt.title(f"Correct vs Incorrect | N: {len(X_train)}, LR: {LEARNING_RATE}, E: {EPOCHS}, T:{training_duration} min,Correct: {np.round((np.sum(correct_counts)/len(y_test)) *100)}%")
+    plt.title(f"Correct vs Incorrect | Layers: {layer_sizes[1:-1]} N: {len(X_train)}, LR: {LEARNING_RATE}, E: {EPOCHS}, T:{training_duration} min,Correct: {((np.sum(correct_counts)/len(y_test)) * 100):.2f}%")
     plt.xticks(digits)
     plt.legend()
 

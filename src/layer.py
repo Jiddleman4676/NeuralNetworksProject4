@@ -48,8 +48,8 @@ class Layer:
         bias_term = np.ones((inputs.shape[0], 1))  # Create a column of 1s
         self.inputs = np.concatenate((inputs, bias_term), axis = 1)  # Append bias term
 
-        # Manually calculate dot product
-        self.z = dot_product(self.inputs.tolist(), self.weights.tolist())
+        # Calculate dot product
+        self.z = np.dot(self.inputs, self.weights)
 
         # Convert list to numpy array for activation function
         self.z = np.array(self.z)
@@ -83,10 +83,7 @@ class Layer:
         After the mini batch is complete, all the weights are updated
         Then the acc is reset
         """
-        for i in range(len(self.weights)):
-            for j in range(len(self.weights[0])):
-                # Update each weight
-                self.weights[i][j] -= learning_rate * (self.grad_weights[i][j] / batch_size)
+        self.weights -= learning_rate * (self.grad_weights / batch_size)
 
         # Reset the accumulator
         self.grad_weights.fill(0)
