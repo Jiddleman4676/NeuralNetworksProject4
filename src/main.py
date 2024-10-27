@@ -55,8 +55,8 @@ def identity(x, derivative=False):
     return x
 
 run_sin = False
-run_vander = False
-run_digits = True
+run_vander = True
+run_digits = False
 
 
 if(run_sin):
@@ -85,10 +85,11 @@ if(run_sin):
 
 
 def ode_model(x, t):
-    return [x[1], -x[0] + (1 - x[0]**2) * x[1]]
+    #This is what it says on the document, graph is a little weird. Want to check if it is intended
+    return [x[1], -x[0] + (1 - x[1]**2) * x[1]]
 
 def Phi(x):
-    t = np.linspace(0, 0.05, 101)
+    t = np.linspace(0, 0.5, 2)
     sol = odeint(ode_model, x, t)
     return sol[-1]
 
@@ -112,11 +113,9 @@ class Net(torch.nn.Module):
 
 # VANDER_POL
 if(run_vander):
-    net = Net()
+    # Define the neural network
 
-    # Compute the samples
-    # X is a set of samples in a 2D plane
-    # Y consists of the corresponding outputs of the samples in X
+    # Generate samples in the state space
     N = 101  # number of samples in each dimension
     samples_x1 = torch.linspace(-3, 3, N)
     samples_x2 = torch.linspace(-3, 3, N)
@@ -127,24 +126,46 @@ if(run_vander):
             sample_x = torch.Tensor([[x1, x2]])
             X = torch.cat((X, sample_x))
 
+    # Generate target Y values using Phi function
     Y = torch.empty((0, 2))
     for x in X:
         y = Phi(x)
         sample_y = torch.Tensor([[y[0], y[1]]])
         Y = torch.cat((Y, sample_y))
 
-    hat_Y = net(X)
+    # Initialize the neural network
+    net = Net()
     loss_fn = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
 
-    for epoch in range(600):
-        hat_Y = net(X)
-        loss = loss_fn(hat_Y, Y)
-        net.zero_grad()
-        loss.backward()
-        optimizer.step()
+    # Mini-batch training parameters
+    batch_size = 32  # Define batch size for mini-batch SGD
+    num_epochs = 100
 
-    # Test 1
+    # Training loop with mini-batch SGD
+    for epoch in range(num_epochs):
+        # Shuffle indices for the mini-batch
+        indices = torch.randperm(X.size(0))
+        X_shuffled = X[indices]
+        Y_shuffled = Y[indices]
+
+        # Process each mini-batch
+        for start in range(0, X.size(0), batch_size):
+            end = min(start + batch_size, X.size(0))
+            X_batch = X_shuffled[start:end]
+            Y_batch = Y_shuffled[start:end]
+
+            # Forward pass
+            hat_Y_batch = net(X_batch)
+            loss = loss_fn(hat_Y_batch, Y_batch)
+
+            # Backward pass and optimization
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+
+    # Plot the results
     x0 = [1.25, 2.35]
     for i in range(150):
         y = Phi(x0)
@@ -160,8 +181,6 @@ if(run_vander):
 
     plt.xlabel('x_1')
     plt.ylabel('x_2')
-
-    # Test 2
     plt.show()
 
 if(run_digits):
