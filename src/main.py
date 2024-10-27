@@ -1,36 +1,35 @@
+import ssl
 import time
-
-from FNN import FeedforwardNeuralNetwork
 import torch
+import numpy as np
 import torch.nn as nn
 import torch.optim as optim
+from FNN import FeedforwardNeuralNetwork
 from matplotlib import pyplot as plt
 from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
-
-import numpy as np
 from scipy.integrate import odeint
-import ssl
+
 ssl._create_default_https_context = ssl._create_unverified_context
 
-
-#Store the activation functions along with their derivatives
+# Store the activation functions along with their derivatives
 def sigmoid(x, derivative=False):
-    x = np.clip(x, -100, 100) #prevent weights from overflowing
-    x += + 1e-10 #prevent divide by 0
+    x = np.clip(x, -100, 100) # Prevent weights from overflowing
+    x += + 1e-10 # Prevent divide by 0
     if derivative:
         return sigmoid(x) * (1 - sigmoid(x))
     return 1 / (1 + np.exp(-x))
 
+# Mean squared error (MSE) loss function with optional derivative
 def mse_loss(y_pred, y_true, derivative=False):
     if derivative:
         return 2 * (y_pred - y_true) / len(y_true)
     return np.mean((y_pred - y_true) ** 2)
 
-
+# Log softmax activation with optional derivative
 def logsoftmax(x, derivative=False):
-    x = np.clip(x, -100, 100) #prevent weights from overflowing
-    x += + 1e-10 #prevent divide by 0
+    x = np.clip(x, -100, 100) # Prevent weights from overflowing
+    x += + 1e-10 # Prevent divide by 0
     exp_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
     log_softmax = np.log(exp_x / np.sum(exp_x, axis=-1, keepdims=True))
 
@@ -39,9 +38,8 @@ def logsoftmax(x, derivative=False):
         return softmax_x * (1 - softmax_x)
     return log_softmax
 
-
+# Custom loss function with optional derivative
 def NNN_loss(y_pred, y_true, derivative=False):
-
     if derivative:
         grad = np.copy(y_pred)
         grad[range(len(y_pred)), y_true] -= 1
@@ -49,22 +47,24 @@ def NNN_loss(y_pred, y_true, derivative=False):
 
     return np.mean(-y_pred[range(len(y_pred)), y_true])
 
+# Identity activation function with optional derivative
 def identity(x, derivative=False):
     if derivative:
         return np.ones_like(x)
     return x
 
-run_sin = False
-run_vander = True
+# Flags for different experiments
+run_sin = True
+run_vander = False
 run_digits = False
 
-
+# Sinusoidal regression experiment
 if(run_sin):
-    X = np.random.uniform(-3, 3, 1000).reshape(-1, 1)
-    Y = np.sin(X)
+    X = np.random.uniform(-3, 3, 1000).reshape(-1, 1) # Generate random inputs
+    Y = np.sin(X) # Generate corresponding outputs
 
     # Define the FNN model with 1 input neuron, 10 hidden neurons, and 1 output neuron
-    nn = FeedforwardNeuralNetwork(layer_sizes=[1, 30, 1], activations=[sigmoid, identity])
+    nn = FeedforwardNeuralNetwork(layer_sizes=[1, 10, 1], activations=[sigmoid, identity])
 
     # Train the model
     nn.train(X, Y, loss_function=mse_loss, loss_derivative=lambda y_pred, y_true: mse_loss(y_pred, y_true, derivative=True),
@@ -83,16 +83,18 @@ if(run_sin):
     plt.legend()
     plt.show()
 
-
+# ODE model for generating data
 def ode_model(x, t):
-    #This is what it says on the document, graph is a little weird. Want to check if it is intended
+    # This is what it says on the document, graph is a little weird. Want to check if it is intended
     return [x[1], -x[0] + (1 - x[1]**2) * x[1]]
 
+# Solves ODE model for a given input
 def Phi(x):
     t = np.linspace(0, 0.5, 2)
     sol = odeint(ode_model, x, t)
     return sol[-1]
 
+# Torch neural network model for VanderPol
 class Net(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -111,12 +113,10 @@ class Net(torch.nn.Module):
         y = self.output(h3)
         return y
 
-# VANDER_POL
+# Van der Pol oscillator experiment
 if(run_vander):
-    # Define the neural network
-
     # Generate samples in the state space
-    N = 101  # number of samples in each dimension
+    N = 101  # Number of samples in each dimension
     samples_x1 = torch.linspace(-3, 3, N)
     samples_x2 = torch.linspace(-3, 3, N)
     X = torch.empty((0, 2))
@@ -126,7 +126,7 @@ if(run_vander):
             sample_x = torch.Tensor([[x1, x2]])
             X = torch.cat((X, sample_x))
 
-    # Generate target Y values using Phi function
+    # Generate target values using Phi function
     Y = torch.empty((0, 2))
     for x in X:
         y = Phi(x)
@@ -164,7 +164,6 @@ if(run_vander):
             loss.backward()
             optimizer.step()
 
-
     # Plot the results
     x0 = [1.25, 2.35]
     for i in range(150):
@@ -183,6 +182,7 @@ if(run_vander):
     plt.ylabel('x_2')
     plt.show()
 
+# Handwritten digit classification using MNIST
 if(run_digits):
     LEARNING_RATE = 1
     EPOCHS = 30
@@ -197,17 +197,16 @@ if(run_digits):
     # Split data into train partition and test partition
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0, test_size=0.25)
 
-    #convert strings to ints
+    # Convert Strings to Ints
     y_train = y_train.astype(int)
     y_test = y_test.astype(int)
 
-    # random sample of test data
+    # Random sample of test data
     sample_indices_test = np.random.choice(X_test.shape[0], TEST_SIZE, replace=False)
     X_test = X_test[sample_indices_test]
     y_test = y_test[sample_indices_test]
 
     # Define the FNN model with 784 input neuron, 64 hidden neurons in 2 layers, and 10 output neuron
-
     nn = FeedforwardNeuralNetwork(layer_sizes=layer_sizes, activations=[sigmoid,sigmoid,sigmoid])
 
     print("training")
@@ -223,6 +222,7 @@ if(run_digits):
 
     print("test")
 
+    # Evaluate model on test data
     correct_counts = np.zeros(10)
     incorrect_counts = np.zeros(10)
 
@@ -252,4 +252,3 @@ if(run_digits):
 
     # Show plot
     plt.show()
-

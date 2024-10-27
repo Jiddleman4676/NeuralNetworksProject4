@@ -1,7 +1,11 @@
-from layer import Layer
 import numpy as np
+from layer import Layer
 
 class FeedforwardNeuralNetwork:
+    """
+    Initializes the network layers with specified sizes and activation functions.
+    Each layer connects to the next, forming a feedforward structure.
+    """
     def __init__(self, layer_sizes, activations):
         # Initialize the layers of the network
         self.layers = []
@@ -9,30 +13,41 @@ class FeedforwardNeuralNetwork:
             self.layers.append(Layer(layer_sizes[i], layer_sizes[i+1], activations[i]))
 
     def forward(self, x):
+        """
+        Performs a forward pass through the network.
+        Each layer processes the input sequentially, returning the final output.
+        """
         # Forward pass through each layer
         for layer in self.layers:
             x = layer.forward(x)
         return x
 
     def backward(self, y_pred, y_true, loss_derivative):
-        # Gradient of the loss function
-        grad = loss_derivative(y_pred, y_true)
-        # Backward pass through each layer
+        """
+        Performs a backward pass through the network.
+        Calculates gradients starting from the output layer and propagates them back.
+        """
+        grad = loss_derivative(y_pred, y_true) # Gradient of the loss function
         for layer in reversed(self.layers):
             grad = layer.backward(grad)
 
     def gd(self, learning_rate, batch_size):
+        """
+        Performs gradient descent to update weights for each layer.
+        Uses accumulated gradients from the backward pass to adjust weights.
+        """
         for layer in self.layers:
-            # Update weights using accumulated gradients
             layer.weights -= learning_rate * (layer.grad_weights / batch_size)
-
-            #Reset gradient
             layer.grad_weights.fill(0)
 
     def train(self, X, Y, loss_function, loss_derivative, epochs=1000, learning_rate=0.01, batch_size=32):
+        """
+        Trains the neural network over multiple epochs.
+        Each epoch processes the dataset in mini-batches for efficient gradient descent.
+        """
         for epoch in range(epochs):
             print("Epoch: ", epoch + 1, " out of ", epochs)
-            indices = np.random.permutation(len(X))
+            indices = np.random.permutation(len(X)) # Shuffle data indices for each epoch
             for i in range(0, len(X), batch_size):
                 batch_indices = indices[i:i + batch_size]
                 batch_X, batch_Y = X[batch_indices], Y[batch_indices]

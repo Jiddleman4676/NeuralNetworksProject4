@@ -87,4 +87,3 @@ class Layer:
 
         # Reset the accumulator
         self.grad_weights.fill(0)
-
