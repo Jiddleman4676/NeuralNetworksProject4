@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
 from scipy.integrate import odeint
+import random
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -52,6 +53,8 @@ def identity(x, derivative=False):
     if derivative:
         return np.ones_like(x)
     return x
+def mse_loss_derivative(inputV, val):
+    return mse_loss(inputV, val, derivative=True)
 
 # Flags for different experiments
 run_sin = True
@@ -60,33 +63,52 @@ run_digits = False
 
 # Sinusoidal regression experiment
 if(run_sin):
-    X = np.random.uniform(-3, 3, 1000).reshape(-1, 1) # Generate random inputs
-    Y = np.sin(X) # Generate corresponding outputs
+    min = -3
+    max = 3
+    training_samples = 1000
+    test_samples = 200
+    num_epochs = 100
+    the_learning_rate = 0.01
+    hiddenLayers = 50
+    #generates the random samples for x values
+    X = np.random.uniform(min, max, training_samples).reshape(-1, 1)
+    #make our Y values for training
+    Y = np.sin(X)
 
-    # Define the FNN model with 1 input neuron, 10 hidden neurons, and 1 output neuron
-    nn = FeedforwardNeuralNetwork(layer_sizes=[1, 10, 1], activations=[sigmoid, identity])
 
-    # Train the model
-    nn.train(X, Y, loss_function=mse_loss, loss_derivative=lambda y_pred, y_true: mse_loss(y_pred, y_true, derivative=True),
-             epochs=100, learning_rate=0.05)
 
-    # Generate test data for plotting
-    x_plot = np.linspace(-3, 3, 100).reshape(-1, 1)
+    # Make our ffn, layer sizes are input, hidden layers, and then output
+    nn = FeedforwardNeuralNetwork(layer_sizes=[1, hiddenLayers, 1], activations=[sigmoid, identity])
+
+    #Training using the FNN class
+    nn.train(
+        X,
+        Y,
+        loss_function=mse_loss,
+        loss_derivative=mse_loss_derivative,
+        epochs=num_epochs,
+        learning_rate=the_learning_rate
+    )
+
+    #Ploting data from test
+    test_min = -3
+    test_max = 3
+    x_plot = np.linspace(test_min, test_max, test_samples).reshape(-1, 1)
     y_plot = nn.forward(x_plot)
 
     # Plot the results
-    plt.plot(X, Y, 'b.', label='Training Data (sin(x))')
-    plt.plot(x_plot, y_plot, 'r-', label='FNN Approximation')
-    plt.title('FNN Approximation of sin(x)')
-    plt.xlabel('x')
-    plt.ylabel('sin(x)')
+    plt.plot(X, Y, 'g.', label='Real exact sin(x) values used for training')
+    plt.plot(x_plot, y_plot, 'b-', label='Our approximation from our FNN')
+    plt.title('Our Approximation of sin(x) using the FFN')
+    plt.xlabel('x input')
+    plt.ylabel('sin(x) function value')
     plt.legend()
     plt.show()
 
 # ODE model for generating data
 def ode_model(x, t):
     # This is what it says on the document, graph is a little weird. Want to check if it is intended
-    return [x[1], -x[0] + (1 - x[1]**2) * x[1]]
+    return [x[1], -x[0] + (1 - x[0]**2) * x[1]]
 
 # Solves ODE model for a given input
 def Phi(x):
@@ -138,28 +160,37 @@ if(run_vander):
     loss_fn = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
 
-    # Mini-batch training parameters
-    batch_size = 32  # Define batch size for mini-batch SGD
-    num_epochs = 100
+    #Part for batches
+    batch_num = 32
+    num_epochs = 25
 
     # Training loop with mini-batch SGD
     for epoch in range(num_epochs):
-        # Shuffle indices for the mini-batch
-        indices = torch.randperm(X.size(0))
-        X_shuffled = X[indices]
-        Y_shuffled = Y[indices]
 
-        # Process each mini-batch
-        for start in range(0, X.size(0), batch_size):
-            end = min(start + batch_size, X.size(0))
-            X_batch = X_shuffled[start:end]
-            Y_batch = Y_shuffled[start:end]
+        size_of_dim = 0
+        indices = list(range(X.size(size_of_dim)))
+        random.shuffle(indices)
 
-            # Forward pass
-            hat_Y_batch = net(X_batch)
-            loss = loss_fn(hat_Y_batch, Y_batch)
 
-            # Backward pass and optimization
+        the_X_vals = X[indices]
+        the_Y_vals = Y[indices]
+
+        #Training based off the batches
+        dim_size = X.size(0)
+        total_batches = batch_num
+        batch_size = X.size(0) // total_batches
+        for current in range(0, dim_size, total_batches):
+            final_value = current + batch_size
+
+
+            batch_xVals = the_X_vals[current: final_value]
+            batch_yVals = the_Y_vals[current: final_value]
+
+           #making our expectations
+            expectation = net(batch_xVals)
+            loss = loss_fn(expectation, batch_yVals)
+
+            #Optimization for our FNN
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -180,6 +211,7 @@ if(run_vander):
 
     plt.xlabel('x_1')
     plt.ylabel('x_2')
+    plt.title('Vanderpol Graph - Blue is actual and Red is predicted values')
     plt.show()
 
 # Handwritten digit classification using MNIST

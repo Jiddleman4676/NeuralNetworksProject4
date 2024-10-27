@@ -65,7 +65,7 @@ class Layer:
         """
 
         # grad of current layers output with respect to its input
-        grad_input = grad_output * self.activation(self.z, derivative=True)  # Shape: (batch_size, output_size)
+        grad_input = grad_output * self.activation(self.z, derivative=True)  # Shape: (batch_num, output_size)
 
         # Compute the gradient for weights (grad_weights)
         # ie how do the weights need to change (will be used in update weights)
@@ -73,7 +73,7 @@ class Layer:
         self.grad_weights += grad_weights_update  # Accumulate grads over mini-batch
 
         # Compute gradient for the previous layer (excluding the bias term)
-        grad_previous_layer = np.dot(grad_input, self.weights[:-1].T)  # Shape: (batch_size, input_size)
+        grad_previous_layer = np.dot(grad_input, self.weights[:-1].T)  # Shape: (batch_num, input_size)
 
         # Return gradient to propagate to the previous layer
         return grad_previous_layer
