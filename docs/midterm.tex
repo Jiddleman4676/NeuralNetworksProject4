@@ -114,7 +114,6 @@ The forward pass involves feeding input data sequentially through each layer in 
 \end{figure}
 During the forward pass, each input is passed through the network’s layers sequentially. Each layer computes the dot product of its inputs and weights, applies the activation function, and passes the result to the next layer.
 
-
 \subsubsection{Backward Pass (Backpropagation)}
 The backward pass, or backpropagation, calculates gradients for each layer’s weights, enabling the network to minimize the loss function. In this process:
 \begin{itemize}
@@ -131,7 +130,6 @@ Backpropagation is implemented using a gradient descent algorithm over mini-batc
 
 \subsection{Sinusoidal Regression}
 In the sinusoidal regression experiment, the FNN was trained to approximate the function $y = \sin(x)$ using a single hidden layer of 10 neurons. The network's approximation was observed to converge towards the sine function, indicating that the FNN effectively learned the relationship. Our tests showed that the results were almost perfect at about 1000,000 epochs.
-
 \begin{figure}[h!]
     \centering
     % First row of images
@@ -165,9 +163,12 @@ In the sinusoidal regression experiment, the FNN was trained to approximate the 
     \end{subfigure}
     \label{fig:sin_approximation}
 \end{figure}
+Some interesting results we found through testing was that the number of hidden layers had a larger impact than we expected in the overall fitting quality of the tests. When we had 4 or less hidden layers, we were never able to achieve a great fit. When we had 100+ hidden layers, the fitting got worse and worse. This is interesting as we found that there really is an ideal number of hidden layers and it is likely best found through trial and error. One thing that was always better for testing was increasing the number of epochs. The fitting on tests with a low number of epochs was never good. As the number of epochs increased, the test fitting got better and better.
 
 \subsection{Data-Driven Model for ODE}
 The data-driven model was tested using the Van der Pol oscillator’s differential equations. Two different differential equations were tested to compare the effects of varying the data. The results showed distinct patterns, as shown below.
+
+Similar to the Sinusoidal Regression, we found that increasing the number of epochs seemed to greatly improve the accuracy of the prediction. We never found that increasing the number of epochs made the predictions worse. The number of hidden layers in this particular model seemed to have less of an impact than the Sinusoidal Regression.
 
 \begin{figure}[h!]
     \centering
@@ -183,7 +184,13 @@ The data-driven model was tested using the Van der Pol oscillator’s differenti
 
 \subsection{Handwritten Digit Classification}
 
-The MNIST dataset was used to test the FNN on handwritten digit classification. The network achieved significant accuracy, showing its capability to handle complex datasets and make reliable predictions.
+The MNIST dataset was used to test the FNN on handwritten digit classification. Our model managed to achieve 98\% accuracy with the optimal combination of parameters (Fig. 5).  The network achieved significant accuracy, showing its capability to handle complex datasets and make reliable predictions.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{image.png}
+    \caption{High accuracy is achievable using the FNN with the Handwritten digit classification dataset. Results shown are the result of using a neural network with the following layer sizes: 748, 128, 128, 10. A total of 30 epochs were run in the most accurate run of the model, which took 9 minutest to run.}
+\end{figure}
 
 \section{Individual Contributions}
 
@@ -194,22 +201,33 @@ The MNIST dataset was used to test the FNN on handwritten digit classification. 
 
 \subsection{Thomas Hynes}
 \begin{itemize}
-    \item[1)] 
+    \item[1)] Worked on sections 1 and 2 of the project document.
+    \item[2)] Wrote the gd and forward methods for the FFN.
+    \item[3)] Modified and optimized other sections of the FFN and added comments.
 \end{itemize}
 
 \subsection{Jeremy Middleman}
 \begin{itemize}
-    \item[1)] 
+    \item[1)] Generated and analyzed data for the digits dataset and made this section in the report.
+    \item[2)] 
 \end{itemize}
 
 \subsection{Andrei Phelps}
 \begin{itemize}
-    \item[1)] 
+    \item[1)] Formatted, created, and organized the project document.
+    \item[2)] Developed the \texttt{Layer} class in \texttt{layer.py}, implementing core methods for forward and backward propagation.
+    \item[3)] Assisted in generating and refining the tests to validate the model's performance.
+    \item[4)] Contributed to the development and debugging of the \texttt{main} and \texttt{FNN} classes.
 \end{itemize}
 
 \subsection{Wayne Rudnick}
 \begin{itemize}
-    \item[1)] 
+    \item[1)] Initialized the repository, added team-members, assigned tasks, and administered project progress
+    \item[2)] Initialized the FNN and Layer class.
+    \item[3)] Structured classes and methods to facilitate the transmission of appropriate data types. Integrated these classes and methods into tests 1-3.
+    \item[4)] Created and completed Case 1 - Simple Regression
+    \item[5)] Created and completed Case 2 - Data-Driven Model
+    \item[6)] Ran the tests and optimized initial parameters. Reported on them in the final document here.
 \end{itemize}
 
 \end{document}
