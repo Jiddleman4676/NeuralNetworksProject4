@@ -52,6 +52,21 @@
 \end{titlepage}
 \newpage
 
+\section{Code Execution}
+
+To run the code, run:
+\[\text{python3 main.py}\]
+
+
+Notes: 
+
+Which specific cases are executed can be changed by changing the "True" and "False" flags in the main.py file.
+
+The number of epochs is very important for each test. By default, we will have the number of epochs on the lower end so that the tests run quickly. However, if you want the tests to be more accurate, it is important that you change the number of epochs at the top of each of the three tests respectively. We still wanted to make the tests fairly accurate so there will be some waiting when you run main, just be patient and the graph will appear. 
+
+The digits dataset can be run quickly (about 2 minutes) by setting the test size parameter in the train test split method to 0.99 with minimal loss in accuracy. Optimal accuracy was obtained when the test size parameter was set to 0.25, however this took a long time.
+
+
 \section{Feedforward Neural Network (FNN)}
 
 \subsection{Data Structures for FNN}
@@ -163,12 +178,14 @@ In the sinusoidal regression experiment, the FNN was trained to approximate the 
     \end{subfigure}
     \label{fig:sin_approximation}
 \end{figure}
-Some interesting results we found through testing was that the number of hidden layers had a larger impact than we expected in the overall fitting quality of the tests. When we had 4 or less hidden layers, we were never able to achieve a great fit. When we had 100+ hidden layers, the fitting got worse and worse. This is interesting as we found that there really is an ideal number of hidden layers and it is likely best found through trial and error. One thing that was always better for testing was increasing the number of epochs. The fitting on tests with a low number of epochs was never good. As the number of epochs increased, the test fitting got better and better.
+Some interesting results we found through testing was that the number of hidden layers had a larger impact than we expected in the overall fitting quality of the tests. When we had 4 or less hidden layers, we were never able to achieve a great fit. When we had 100+ hidden layers, the fitting got worse and worse. This is interesting as we found that there really is an ideal number of hidden layers and it is likely best found through trial and error. One thing that was always better for testing was increasing the number of epochs. The fitting on tests with a low number of epochs was never good. As the number of epochs increased, the test fitting got better and better. We found that higher learning rates were better when we have a low number of epochs, as you want to converge to a value faster. However, if you have the time to run more epochs, it is better to have a lower learning rate for precision.
 
 \subsection{Data-Driven Model for ODE}
 The data-driven model was tested using the Van der Pol oscillator’s differential equations. Two different differential equations were tested to compare the effects of varying the data. The results showed distinct patterns, as shown below.
 
-Similar to the Sinusoidal Regression, we found that increasing the number of epochs seemed to greatly improve the accuracy of the prediction. We never found that increasing the number of epochs made the predictions worse. The number of hidden layers in this particular model seemed to have less of an impact than the Sinusoidal Regression.
+Similar to the Sinusoidal Regression, we found that increasing the number of epochs seemed to greatly improve the accuracy of the prediction. We never found that increasing the number of epochs made the predictions worse. The number of hidden layers in this particular model seemed to have less of an impact than the Sinusoidal Regression. Similar to the previous test, we found that higher learning rates were better when we have a low number of epochs, as you want to converge to a value faster. In the case where you have the time to run more epochs, it is better to have a lower learning rate for precision as the prediction converges.
+
+We also found that the ode from the given assignment provided a somewhat strange looking graph shape by default. So in our document we included the test from the vanderpol ode as we thought it was a better example. The code runs the ode from the assignment, and it can easily be changed in the "ode(underscore)model" method in main if you want to test with the ode from the vanderpol provided python code.
 
 \begin{figure}[h!]
     \centering
@@ -184,7 +201,11 @@ Similar to the Sinusoidal Regression, we found that increasing the number of epo
 
 \subsection{Handwritten Digit Classification}
 
-The MNIST dataset was used to test the FNN on handwritten digit classification. Our model managed to achieve 98\% accuracy with the optimal combination of parameters (Fig. 5).  The network achieved significant accuracy, showing its capability to handle complex datasets and make reliable predictions.
+The MNIST dataset was used to test the FNN on handwritten digit classification. Our model managed to achieve 98\% accuracy with the optimal combination of parameters (Fig. 5). 
+
+One experiment that was done was to try to improve the time performance by reducing the number of neurons in the hidden layers and reducing the number of epochs. The number of epochs was reduced to ten and the number of neurons in each of the two inner hidden layers from 128 to 16. This did result in the program running faster, however the model predicted that all examples had value 1. Thus the model was unsuccessful at classifying the different digits. The model was unsuccessful with 30 epochs, as well. 84\% accuracy was achievable using only 1\% of the entire dataset (700 data samples) as part of training and 10 epochs, and ~91\% accuracy was achievable with (7000 data samples) and 84\% accuracy using 30 epochs and 1\% of the original data. Additionally, testing revealed that 128 is the optimal number of neurons in each of the two hidden layers. In our testing, a sigmoid function was used for all layers. When 256 neurons were in each of the two hidden layers, the accuracy was reduced to 74\% and down to 65\% when only 64 neurons were used in each layer. The optimal learning rate was 1.0. Learning rates above and below 1 yielded suboptimal accuracies.
+
+These results show that the network achieved high accuracy, showing its capability to handle complex datasets and make reliable predictions. The key to getting this accuracy ended up being to optimize the FNN. With an inefficient implementation the training extremely long and would still jot result in good performance. After using the pycharm profiler, we were able to determine that the manual dotproduct, forward, and backward for-loops were dominating the training time. After switching these operations to the builtin numpy vector/matrix operation we ended up with about 100x improvement in runtime. This allowed us to run the entire 70000 data point data set through the FNN, which led to drastic improvements in accuracy and runtime.
 
 \begin{figure}
     \centering
@@ -196,7 +217,18 @@ The MNIST dataset was used to test the FNN on handwritten digit classification. 
 
 \subsection{Brian High}
 \begin{itemize}
-    \item[1)] 
+    \item[1)] Helped to implement back propagation
+
+\item[2)]Driver code for fetching the MNIST digits datset
+
+\item[3)]Driver code for Training tesing on the digits data set
+
+\item[4)]Plot for the digits classification 
+
+\item[5)]Optimized FNN to use numpy matrix and vector built ins rather than loops
+
+\item[6)]Optimized parameters for the digits dataset
+
 \end{itemize}
 
 \subsection{Thomas Hynes}
@@ -208,8 +240,9 @@ The MNIST dataset was used to test the FNN on handwritten digit classification. 
 
 \subsection{Jeremy Middleman}
 \begin{itemize}
-    \item[1)] Generated and analyzed data for the digits dataset and made this section in the report.
-    \item[2)] 
+    \item[1)] Generated and analyzed data for the digits dataset and wrote this section discussing the data in the report.
+    \item[2)] Adjusted the main class so that the digits dataset could be run through the model without it taking a long time.
+    \item[3)] Wrote the Code Execution section of the report and helped organize main.py.
 \end{itemize}
 
 \subsection{Andrei Phelps}
