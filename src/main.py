@@ -58,8 +58,8 @@ def mse_loss_derivative(inputV, val):
 
 # Flags for different experiments
 run_sin = True
-run_vander = False
-run_digits = False
+run_vander = True
+run_digits = True
 
 # Sinusoidal regression experiment
 if(run_sin):
@@ -67,9 +67,9 @@ if(run_sin):
     max = 3
     training_samples = 1000
     test_samples = 200
-    num_epochs = 100
+    num_epochs = 500
     the_learning_rate = 0.01
-    hiddenLayers = 50
+    hiddenLayers = 10
     #generates the random samples for x values
     X = np.random.uniform(min, max, training_samples).reshape(-1, 1)
     #make our Y values for training
@@ -80,15 +80,22 @@ if(run_sin):
     # Make our ffn, layer sizes are input, hidden layers, and then output
     nn = FeedforwardNeuralNetwork(layer_sizes=[1, hiddenLayers, 1], activations=[sigmoid, identity])
 
+
+    cur_loss = mse_loss
+    cur_loss_deriv = mse_loss_derivative
+
     #Training using the FNN class
     nn.train(
         X,
         Y,
-        loss_function=mse_loss,
-        loss_derivative=mse_loss_derivative,
+        loss_function=cur_loss,
+        loss_derivative=cur_loss_deriv,
+
         epochs=num_epochs,
         learning_rate=the_learning_rate
     )
+
+
 
     #Ploting data from test
     test_min = -3
@@ -108,7 +115,7 @@ if(run_sin):
 # ODE model for generating data
 def ode_model(x, t):
     # This is what it says on the document, graph is a little weird. Want to check if it is intended
-    return [x[1], -x[0] + (1 - x[0]**2) * x[1]]
+    return [x[1], -x[0] + (1 - x[1]**2) * x[1]]
 
 # Solves ODE model for a given input
 def Phi(x):
@@ -162,7 +169,7 @@ if(run_vander):
 
     #Part for batches
     batch_num = 32
-    num_epochs = 25
+    num_epochs = 200
 
     # Training loop with mini-batch SGD
     for epoch in range(num_epochs):
@@ -175,16 +182,19 @@ if(run_vander):
         the_X_vals = X[indices]
         the_Y_vals = Y[indices]
 
-        #Training based off the batches
+        #finding where to end the batch here
         dim_size = X.size(0)
         total_batches = batch_num
         batch_size = X.size(0) // total_batches
+
+        #looping through batches for training
         for current in range(0, dim_size, total_batches):
             final_value = current + batch_size
 
+            end_val = final_value
 
-            batch_xVals = the_X_vals[current: final_value]
-            batch_yVals = the_Y_vals[current: final_value]
+            batch_xVals = the_X_vals[current: end_val]
+            batch_yVals = the_Y_vals[current: end_val]
 
            #making our expectations
             expectation = net(batch_xVals)
@@ -195,7 +205,9 @@ if(run_vander):
             loss.backward()
             optimizer.step()
 
-    # Plot the results
+
+
+    #Everything below is for plotting
     x0 = [1.25, 2.35]
     for i in range(150):
         y = Phi(x0)
@@ -227,7 +239,7 @@ if(run_digits):
     X = X / 255.0 # normalize to 0 to 1
 
     # Split data into train partition and test partition
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0, test_size=0.25)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0, test_size=0.99)
 
     # Convert Strings to Ints
     y_train = y_train.astype(int)
