@@ -1,9 +1,6 @@
 import numpy as np
 
 def dot_product(a, b):
-    """
-    Manually computes the dot product between two matrices a and b.
-    """
     result = []
     for i in range(len(a)):
         row_result = []
@@ -33,6 +30,18 @@ class Layer:
         #will store the accumulated grads for the weights
         self.grad_weights = np.zeros_like(self.weights)
         self.inputs = None
+
+        #adams algorithm variables
+        #first moment vector
+        self.m = np.zeros_like(self.weights)
+        #second moment vector
+        self.v = np.zeros_like(self.weights)
+        #moment decay rate 1
+        self.b1 = 0.9
+        #moment decay rate 2
+        self.b2 = 0.999
+        #timestep
+        self.t = 0
 
     def forward(self, inputs):
         """
@@ -77,13 +86,3 @@ class Layer:
 
         # Return gradient to propagate to the previous layer
         return grad_previous_layer
-
-    def update_weights(self, learning_rate, batch_size):
-        """
-        After the mini batch is complete, all the weights are updated
-        Then the acc is reset
-        """
-        self.weights -= learning_rate * (self.grad_weights / batch_size)
-
-        # Reset the accumulator
-        self.grad_weights.fill(0)

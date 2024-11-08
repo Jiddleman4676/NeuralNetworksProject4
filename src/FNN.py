@@ -40,6 +40,23 @@ class FeedforwardNeuralNetwork:
             layer.weights -= learning_rate * (layer.grad_weights / batch_size)
             layer.grad_weights.fill(0)
 
+    def adam(self, learning_rate, batch_size, b1=0.9, b2=0.999):
+        """
+        Performs adams algorithm to update weights for each layer.
+        """
+        for layer in self.layers:
+            layer.t += 1
+            layer.m = b1 * layer.m + (1 - b1) * (layer.grad_weights / batch_size)
+            layer.v = b2 * layer.v + (1 - b2) * (layer.grad_weights / batch_size) ** 2
+
+            #correct bias
+            m_h = layer.m / (1 - b1 ** layer.t)
+            v_h = layer.v / (1 - b2 ** layer.t)
+
+            #update weights
+            layer.weights -= learning_rate * m_h / (np.sqrt(v_h) + 1e-8)
+            layer.grad_weights.fill(0)
+
     def train(self, X, Y, loss_function, loss_derivative, epochs=1000, learning_rate=0.01, batch_size=32):
         """
         Trains the neural network over multiple epochs.
@@ -57,5 +74,7 @@ class FeedforwardNeuralNetwork:
                     y_pred = self.forward(x)
                     self.backward(y_pred, y_true, loss_derivative)
 
-                # After processing batch, perform gradient descent
+                # After processing batch, choose to use adams algorithm or gd
+
                 self.gd(learning_rate, batch_size)
+                #self.adam(learning_rate, batch_size)
