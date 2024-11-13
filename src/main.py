@@ -11,7 +11,6 @@ from sklearn.model_selection import train_test_split
 from scipy.integrate import odeint
 import random
 
-# Test (Andrei)
 ssl._create_default_https_context = ssl._create_unverified_context
 
 # Store the activation functions along with their derivatives

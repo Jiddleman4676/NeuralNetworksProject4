@@ -14,34 +14,28 @@ def dot_product(a, b):
 
 class Layer:
 
-    #input_size - number of neurons in the previous layer
-    #output_size - number of neurons in the next layer
-
     def __init__(self, input_size, output_size, activation):
         """
-        Initializes the layer by setting the weights, activation function, and
-        gradient accumulator for the weights. The weights include an additional
-        term for bias.
+        Initializes the layer with Xavier initialization for weights,
+        activation function, and gradient accumulator for weights.
         """
         self.z = None
-        #set the number of weights + 1 to absorb the bias
-        self.weights = np.random.randn(input_size + 1, output_size) * 0.1
         self.activation = activation
-        #will store the accumulated grads for the weights
+
+        # Customized Xavier initialization, taking into account bias
+        scale = np.sqrt(6 / (input_size + output_size + 1))
+        self.weights = np.random.uniform(-scale, scale, (input_size + 1, output_size))
+
+        # Accumulator for gradients
         self.grad_weights = np.zeros_like(self.weights)
         self.inputs = None
 
-        #adams algorithm variables
-        #first moment vector
-        self.m = np.zeros_like(self.weights)
-        #second moment vector
-        self.v = np.zeros_like(self.weights)
-        #moment decay rate 1
-        self.b1 = 0.9
-        #moment decay rate 2
-        self.b2 = 0.999
-        #timestep
-        self.t = 0
+        # Variables for Nesterov momentum
+        self.m = np.zeros_like(self.weights)  # First moment vector
+        self.v = np.zeros_like(self.weights)  # Second moment vector
+        self.b1 = 0.9  # Decay rate for first moment
+        self.b2 = 0.999  # Decay rate for second moment
+        self.t = 0  # Time step
 
     def forward(self, inputs):
         """

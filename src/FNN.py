@@ -57,6 +57,22 @@ class FeedforwardNeuralNetwork:
             layer.weights -= learning_rate * m_h / (np.sqrt(v_h) + 1e-8)
             layer.grad_weights.fill(0)
 
+    def nesterov(self, learning_rate, batch_size, momentum=0.85):
+        """
+        Applies Nesterov momentum-based updates to each layer's weights.
+        """
+        for layer in self.layers:
+            if not hasattr(layer, 'v'):
+                layer.v = np.zeros_like(layer.weights)
+
+            # Lookahead calculation with custom handling of previous velocity
+            v_prev = np.copy(layer.v)  # Store the previous velocity
+            layer.v = momentum * layer.v - learning_rate * (layer.grad_weights / batch_size)
+
+            # Update weights with Nesterov correction based on prior and current velocities
+            layer.weights += momentum * v_prev - learning_rate * (layer.grad_weights / batch_size)
+            layer.grad_weights.fill(0)  # Reset gradient accumulator
+
     def train(self, X, Y, loss_function, loss_derivative, epochs=1000, learning_rate=0.01, batch_size=32):
         """
         Trains the neural network over multiple epochs.
