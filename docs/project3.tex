@@ -30,7 +30,7 @@
 \vspace{1cm}
 
 \Large
-\text{Due: Tuesday, November 12, 2024}
+\text{Due: Friday, November 15, 2024}
 
 \vspace{2cm}
 
@@ -50,6 +50,7 @@
 
 \end{center}
 \end{titlepage}
+
 \newpage
 
 \section*{Code Execution}
@@ -57,16 +58,154 @@
 To run the code, run: \\ \\
 Notes: 
 
-\section*{First Section}
+\section*{Newton's Method}
 
-\subsection{Newtons Method}
+\subsection*{What is the Hessian?}
+The Hessian matrix is a square matrix of second-order partial derivatives. Newton's method's goal is to make a 2nd order approximation and minimize it. The Hessian is how we calculate these 2nd order derivatives. For a function \( F \) with \( n \) parameters, the Hessian is an \( n \times n \) matrix, where each element \( H_{ij} \) represents the second-order partial derivative of \( F \) with respect to two parameters. In our case, the Hessian is \( n \times n \) matrix where n is the number of weights in the neural network. The hessian captures the curvature of the function along each individual parameter axis along with the interaction between pairs of parameters. This structure second-order optimization methods to work.
 
-\subsubsection{What is the Hessian?}
-The Hessian matrix is a square matrix of second-order partial derivatives. Newton's method's goal is to make a 2nd order approximation and minimize it. The Hessian is how we calculate these 2nd order derivatives. For a function \( F \) with \( n \) parameters, the Hessian is an \( n \times n \) matrix, where each element \( H_{ij} \) represents the second-order partial derivative of \( F \) with respect to two parameters. In our case, the Hessian is \( n \times n \) matrix where n is the number of weights in the neural network. The hessian captures the curvature of the function along each individual parameter axis along with the interaction between pairs of parameters. This structure second-order optimization methods to work. 
-\subssection{}
-\subsubsection{Resulting Hessians}
+\subsection*{Explain the update of the 1st and 2nd order deravtives}
+To update each weight in a neural network, we use both first-order and second-order derivatives. The first-order derivative, or gradient, shows how much a small change in each weight affects the overall loss, and it’s calculated by backpropagation. The second-order derivative, found in the Hessian matrix, tells us how each gradient changes with respect to other weights, helping us understand the curve of the loss function. Using both gradients and the Hessian allows us to update weights more precisely by considering both the slope and curvature of the loss surface.
 
+
+
+\subsection*{Pseudo Code}
+
+\begin{verbatim}
+ Inputs:
+   W: Weight matrix 
+   grad: Gradient matrix 
+   x: Input data point
+   y: Target output
+
+
+function computeHessian(W, grad, x, y):
+    # Initialize Hessian list for each layer
+    H = [zeros_like(layer) for layer in W]
+
+    # Forward pass to compute activations
+    activations = [x]  # Input is the first activation
+    for layer_weights in W:
+        x = activationFunction(dotProduct(layer_weights, x))
+        activations.append(x)
+
+    # Backward pass to compute Hessian
+    for layer in reverse(W):
+       for i and j in W
+            # Compute second-order derivative
+            activation_term = activationSecondDerivative(activations[layer]) * activations[layer-1][i]
+            gradient_term = grad[layer][i][j]
+            H[layer][i][j] = activation_term + gradient_term
+
+    return H
+
+
+\end{verbatim}
+
+\subsection{Case 1: Computations}
 \includegraphics[scale=0.1]{../figs/Case 1.png} \\[0.5cm]
+
+The following is an example how to compute the hessian on this nueral network using random values.
+
+
+
+
+
+\subsubsection{Forward Pass}
+The weights and biases are initialized randomly:
+\[
+x = 0.5, \quad W_1 = 0.8, \quad W_2 = -0.6, \quad W_3 = 0.4, \quad W_4 = 1.2
+\]
+\[
+b_1 = 0.1, \quad b_2 = -0.2, \quad b_3 = 0.05, \quad b_4 = 0.3
+\]
+\paragraph{Compute layer activations:} Sigmoid activation function is used to compute the activation
+
+\[
+z_1 = W_1 \cdot x + b_1 = 0.5, \quad a_1 = \sigma(z_1) \approx 0.6225
+\]
+\[
+z_2 = W_2 \cdot a_1 + b_2 \approx -0.5735, \quad a_2 = \sigma(z_2) \approx 0.3605
+\]
+\[
+z_3 = W_3 \cdot a_2 + b_3 = 0.1942, \quad a_3 = \sigma(z_3) \approx 0.5484
+\]
+\[
+z_4 = W_4 \cdot a_3 + b_4 = 0.9581, \quad \hat{y} = \sigma(z_4) \approx 0.7228
+\]
+
+\subsubsection{Back Propagation} Mean squared Error used for the loss function
+
+
+\paragraph{Gradient of Loss with Respect to Output Layer}
+
+\[
+\frac{\partial L}{\partial \hat{y}} = \hat{y} - y = 0.7228 - 1 = -0.2772
+\]
+
+\paragraph{Error for Output Layer}
+\[
+\delta_4 = \frac{\partial L}{\partial \hat{y}} \cdot \sigma'(z_4)
+\]
+
+\[
+\sigma'(z_4) = \hat{y} \cdot (1 - \hat{y}) = 0.7228 \cdot (1 - 0.7228) \approx 0.2002
+\]
+
+\[
+\delta_4 = -0.2772 \cdot 0.2002 \approx -0.0555
+\]
+
+\paragraph{Gradients for \( W_4 \) and \( b_4 \)}
+\[
+\frac{\partial L}{\partial W_4} = \delta_4 \cdot a_3 = -0.0555 \cdot 0.5484 \approx -0.0304
+\]
+\[
+\frac{\partial L}{\partial b_4} = \delta_4 \approx -0.0555
+\]
+
+
+\subsubsection{Repeat for layer 1-3}
+
+
+\subsubsection{The resulting gradients for each weight and bias would look something like this:}
+\[
+\frac{\partial L}{\partial W_4} \approx -0.0304, \quad \frac{\partial L}{\partial b_4} \approx -0.0555
+\]
+\[
+\frac{\partial L}{\partial W_3} \approx -0.0059, \quad \frac{\partial L}{\partial b_3} \approx -0.0165
+\]
+\[
+\frac{\partial L}{\partial W_2} \approx -0.0009, \quad \frac{\partial L}{\partial b_2} \approx -0.0015
+\]
+\[
+\frac{\partial L}{\partial W_1} \approx 0.0001, \quad \frac{\partial L}{\partial b_1} \approx 0.0002
+\]
+
+\subsubsection{Computing the Hessian}
+
+The second-order gradients are the partial derivatives of each first-order gradient with respect to each weight. The Hessian element \( H_{ij} \) is given by:
+\[
+H_{ij} = \frac{\partial g_i}{\partial w_j} = \frac{\partial^2 L}{\partial w_i \partial w_j}
+\]
+
+Apply the chain rule to the gradients as you backpropagate through the network to get the hessian.
+
+\\
+For the diagonal elements, where \( i = j \), the second-order derivative is:
+\[
+H_{ii} = \frac{\partial^2 L}{\partial w_i^2}
+\]
+\\
+For the off-diagonal elements, where \( i \neq j \), the second-order derivative is:
+\[
+H_{ij} = \frac{\partial^2 L}{\partial w_i \partial w_j}
+\]
+
+
+
+\paragraph{Resulting Hessians}
+
+
 \[
 H_1 = \begin{bmatrix}
 \frac{\partial^2 L}{\partial (w_{1,1}^{[1]})^2} & \frac{\partial^2 L}{\partial w_{1,1}^{[1]} \partial w_{1,1}^{[2]}} & \frac{\partial^2 L}{\partial w_{1,1}^{[1]} \partial w_{1,1}^{[3]}} & \frac{\partial^2 L}{\partial w_{1,1}^{[1]} \partial w_{1,1}^{[4]}} \\
@@ -76,8 +215,16 @@ H_1 = \begin{bmatrix}
 \end{bmatrix}
 \]
 
+
+\subsection{Case 2:}
+
 \includegraphics[scale=0.1]{../figs/Case 2.png} \\[0.5cm]
 
+\subsubsection{Computations}
+
+The steps for this more complex neural network would be exactly the same expect the hessian would end of being 12x12 and there would be far more calulations.In a network with more neurons per layer, like a Each weight affects multiple neurons, making the relationships between weights more complex. Calculating the Hessian requires tracking how pairs of weights interact across layers, which takes more steps than in a network with only one neuron per layer. This increased complexity means we need more calculations to fully understand how changes in each weight impact the overall network output.
+
+\subsubsection{Resulting Hessian}
 \[
 H_2 = \begin{bmatrix}
 \frac{\partial^2 L}{\partial (w_{1,1}^{[1]})^2} & \frac{\partial^2 L}{\partial w_{1,1}^{[1]} \partial w_{2,1}^{[1]}} & \cdots & \frac{\partial^2 L}{\partial w_{1,1}^{[1]} \partial w_{2,1}^{[4]}} \\
@@ -92,7 +239,8 @@ H_2 = \begin{bmatrix}
 
 \subsection*{Brian High}
 \begin{itemize}
-    \item[1)] 
+    \item[1)] Started programming Newtons Method
+    \item[2)] Wrote the report on Newtons Method
 \end{itemize}
 
 \subsection*{Thomas Hynes}
