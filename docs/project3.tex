@@ -55,8 +55,21 @@
 
 \section{Code Execution}
 
-To run the code, run: \\ \\
-Notes: 
+To run the code, run:
+\[\text{python3 main.py}\]
+
+near line 46 we have: 
+# (set either nesterov or adam to true or neither for vanilla GD)
+nesterov = False
+adam = False
+
+Change these to run with different learning methods. Right below that you can adjust the learning rates for the different methods. They ones they are preset to yeilded the best results for us.
+
+To change the number of epochs and test size, you can adjust that in the digits test and our covtype test methods.
+
+The learning tests can be run quickly (about 2 minutes) by setting the test size parameter in the train test split method to 0.99 with minimal loss in accuracy. Optimal accuracy was obtained when the test size parameter was set to 0.25, however this took a long time to run.
+
+
 
 \section{Newton's Method}
 
@@ -222,6 +235,10 @@ H_2 = \begin{bmatrix}
 \]
 \section{Experiments and Results}
 
+It is important to note that we used different learning rates for our three learning methods. Initially we wanted to use the same learning rate, but some of the methods performed very poorly when we all had them set to the same learning rate. We tested and optimized, and the rates that are selected are because they performed best in testing with each learning method respectfully. For this dataset, we opted to use two hidden layers. We did some testing and found that 2 layers gave us good accuracy and performance. So all tests in the digits test were performed using two hidden layers.
+
+Additionally, all data generated with the covtype dataset used Xavier initialization and three hidden layers (unless otherwise stated).
+
 \subsection{Steepest Gradient Descent Method}
 
 \subsubsection{Experiment with 100 Epochs}
@@ -266,6 +283,15 @@ Increasing the epoch count to 1,000 raised the accuracy to 86.69\%. Figure~\ref{
     \label{fig:Nes_1000ep}
 \end{figure}
 
+At the bottom of the page is the result of Nesterov's algorithm on the covtype dataset with three hidden layers.
+
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.2]{3.png}
+    \caption{Covtype dataset with 10 epochs and Nesterov's algorithm.}
+    \label{fig:enter-label}
+\end{figure}
+
 \subsection{Adam's Method}
 
 \subsubsection{Experiment with 100 Epochs}
@@ -288,6 +314,24 @@ Further training to 1,000 epochs marginally improved the accuracy to 87.74\%, wi
     \label{fig:Adam_1000ep}
 \end{figure}
 
+\subsubsection{Experiment with 10 Epochs}
+The covtype dataset saw similar trends as digits did. 
+
+Below is a comparison: three hidden layers vs. just two hidden layers. The three layer model performs as well as the two-layer model, suggesting that adding additional layers of size 128 is insufficient to improve the accuracy of our model. These tests were run with with optimal hyperparameter selection: a learning rate of 0.001 and 128 neurons per layer.
+
+Additionally, the Adam optimization performed very similarly to the Nesterov algorithm with a slightly higher accuracy for the covtype dataset. The covtype dataset is much larger and as a result there is much more data necessary to learn. As our model only attempts to learn 5\% of this data and then apply that to 9.5\% of the remaining data (test), this is the most likely reason why the model is less effective at classifying the covtype data compared to the digits data. 
+
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.5]{image.png}
+    \caption{Adam's method with 10 epochs with two hidden layers. No significant difference compared to three hidden layers (below).}
+    \label{fig:enter-label}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.5]{2.png}
+\end{figure}
 \newpage
 
 \subsection{All Methods Compared}
@@ -325,7 +369,9 @@ Adam's Method shows superior results in both short and extended training periods
 
 \subsection*{Jeremy Middleman}
 \begin{itemize}
-    \item[1)] 
+    \item[1)] Added the covtype dataset and got it working with our new and old methods.
+    \item[2)] Troubleshooting with Adam and parameter optimization with Nesterov.
+    \item[3)] Did data generation and analysis for the report for the covtype dataset and three hidden layers.
 \end{itemize}
 
 \subsection*{Andrei Phelps}
