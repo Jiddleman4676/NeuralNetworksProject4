@@ -30,7 +30,7 @@
 \vspace{1cm}
 
 \Large
-\text{Due: Friday, November 15, 2024}
+\text{Due: Monday, November 18, 2024}
 
 \vspace{2cm}
 
@@ -55,21 +55,25 @@
 
 \section{Code Execution}
 
-To run the code, run:
-\[\text{python3 main.py}\]
+To execute the neural network training code, use the following command:
+\begin{verbatim}
+    python3 main.py
+\end{verbatim}
 
-near line 46 we have: 
-# (set either nesterov or adam to true or neither for vanilla GD)
-nesterov = False
-adam = False
+\begin{itemize}
+    \item[$\bullet$] Configuration for optimization methods can be found near line 46 of \texttt{main.py}. Initially set to:
+    \begin{verbatim}
+        nesterov = False
+        adam = False
+    \end{verbatim}
+    Set either \texttt{nesterov} or \texttt{adam} to \texttt{True} to enable these methods, or leave both as \texttt{False} to use vanilla Gradient Descent.
 
-Change these to run with different learning methods. Right below that you can adjust the learning rates for the different methods. They ones they are preset to yeilded the best results for us.
+    \item[$\bullet$] Directly below the optimization method flags, you can adjust the learning rates for each method. The preset values provided have been optimized based on our experimental results.
 
-To change the number of epochs and test size, you can adjust that in the digits test and our covtype test methods.
+    \item[$\bullet$] To modify the number of epochs or the test size, locate the settings within the functions handling the MNIST digits test and the Covtype dataset. These parameters can be adjusted to tailor the training process to different computational constraints and accuracy requirements.
 
-The learning tests can be run quickly (about 2 minutes) by setting the test size parameter in the train test split method to 0.99 with minimal loss in accuracy. Optimal accuracy was obtained when the test size parameter was set to 0.25, however this took a long time to run.
-
-
+    \item[$\bullet$] Quick training sessions can be executed by setting the \texttt{test\_size} parameter in the \texttt{train\_test\_split} method to 0.99, which reduces training time to approximately 2 minutes with a minimal decrease in accuracy. For optimal accuracy, set \texttt{test\_size} to 0.25; note that this setting significantly increases the duration of the training process.
+\end{itemize}
 
 \section{Newton's Method}
 
@@ -113,8 +117,6 @@ function computeHessian(W, grad, x, y):
 
 \subsection{Case 1: Computations}
 \includegraphics[scale=0.1]{../figs/Case 1.png} \\[0.5cm]
-
-The following is an example how to compute the hessian on this nueral network using random values.
 
 \subsubsection{Forward Pass}
 The weights and biases are initialized randomly:
@@ -192,11 +194,7 @@ The second-order gradients are the partial derivatives of each first-order gradi
 \[
 H_{ij} = \frac{\partial g_i}{\partial w_j} = \frac{\partial^2 L}{\partial w_i \partial w_j}
 \]
-
-Apply the chain rule to the gradients as you backpropagate through the network to get the hessian.
-
-\\
-For the diagonal elements, where \( i = j \), the second-order derivative is:
+Apply the chain rule to the gradients as you backpropagate through the network to get the hessian. For the diagonal elements, where \( i = j \), the second-order derivative is:
 \[
 H_{ii} = \frac{\partial^2 L}{\partial w_i^2}
 \]
@@ -235,8 +233,7 @@ H_2 = \begin{bmatrix}
 \]
 \section{Experiments and Results}
 
-It is important to note that we used different learning rates for our three learning methods. Initially we wanted to use the same learning rate, but some of the methods performed very poorly when we all had them set to the same learning rate. We tested and optimized, and the rates that are selected are because they performed best in testing with each learning method respectfully. For this dataset, we opted to use two hidden layers. We did some testing and found that 2 layers gave us good accuracy and performance. So all tests in the digits test were performed using two hidden layers.
-
+It is important to note that we used different learning rates for our three learning methods. Initially we wanted to use the same learning rate, but some of the methods performed very poorly when we all had them set to the same learning rate. We tested and optimized, and the rates that are selected are because they performed best in testing with each learning method respectfully. For this dataset, we opted to use two hidden layers. We did some testing and found that 2 layers gave us good accuracy and performance. So all tests in the digits test were performed using two hidden layers. \\ \\
 Additionally, all data generated with the covtype dataset used Xavier initialization and three hidden layers (unless otherwise stated).
 
 \subsection{Steepest Gradient Descent Method}
@@ -265,6 +262,8 @@ When the training duration was increased to 1,000 epochs, the accuracy improved 
 
 \subsubsection{Experiment with 100 Epochs}
 Utilizing Nesterov momentum for the initial 100 epochs, the network logged a classification accuracy of 86.05\%, as shown in Figure~\ref{fig:Nes_100ep}. This result underlines the effectiveness of Nesterov momentum in handling early training phases, albeit with some challenges in accurately classifying more complex digits.
+
+\newpage
 
 \begin{figure}[h!]
     \centering
@@ -307,6 +306,8 @@ Adam's method demonstrated rapid attainment of higher accuracy, reaching 87.17\%
 \subsubsection{Experiment with 1,000 Epochs}
 Further training to 1,000 epochs marginally improved the accuracy to 87.74\%, with Figure~\ref{fig:Adam_1000ep} showing that while Adam is highly effective in optimizing learning, there is a plateau in performance gains with additional training.
 
+\newpage
+
 \begin{figure}[h!]
     \centering
     \includegraphics[scale=0.5]{../figs/Adam_1000ep.png}
@@ -315,22 +316,22 @@ Further training to 1,000 epochs marginally improved the accuracy to 87.74\%, wi
 \end{figure}
 
 \subsubsection{Experiment with 10 Epochs}
-The covtype dataset saw similar trends as digits did. 
 
-Below is a comparison: three hidden layers vs. just two hidden layers. The three layer model performs as well as the two-layer model, suggesting that adding additional layers of size 128 is insufficient to improve the accuracy of our model. These tests were run with with optimal hyperparameter selection: a learning rate of 0.001 and 128 neurons per layer.
+The experiment with the covtype dataset demonstrated similar trends to those observed with the digits dataset. Below, we compare the performance of models with three hidden layers versus two hidden layers. Interestingly, the three-layer model performs comparably to the two-layer model, indicating that simply adding more layers of size 128 is not sufficient to enhance the model's accuracy. These tests were conducted with optimal hyperparameter selection, including a learning rate of 0.001 and 128 neurons per layer. \\ \\
+Additionally, the Adam optimization algorithm performed very similarly to the Nesterov algorithm, achieving slightly higher accuracy for the covtype dataset. Given that the covtype dataset is substantially larger, it requires a more extensive dataset for effective learning. Since our model only attempts to learn from 5\% of this data before applying it to 9.5\% of the remaining data for testing, this is likely why the model is less effective at classifying covtype data compared to digits data.
 
-Additionally, the Adam optimization performed very similarly to the Nesterov algorithm with a slightly higher accuracy for the covtype dataset. The covtype dataset is much larger and as a result there is much more data necessary to learn. As our model only attempts to learn 5\% of this data and then apply that to 9.5\% of the remaining data (test), this is the most likely reason why the model is less effective at classifying the covtype data compared to the digits data. 
-
-\begin{figure}
+\begin{figure}[h!]
     \centering
-    \includegraphics[scale=0.5]{image.png}
-    \caption{Adam's method with 10 epochs with two hidden layers. No significant difference compared to three hidden layers (below).}
-    \label{fig:enter-label}
+    \includegraphics[scale=0.4]{image.png}
+    \caption{Adam's Method with 10 Epochs}
+    \label{fig:two-layer-adam}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h!]
     \centering
-    \includegraphics[scale=0.5]{2.png}
+    \includegraphics[scale=0.4]{2.png}
+    \caption{Comparison of models with three hidden layers using Adam's method.}
+    \label{fig:three-layer-adam}
 \end{figure}
 \newpage
 
