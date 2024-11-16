@@ -9,9 +9,6 @@ from sklearn.datasets import fetch_openml, fetch_covtype
 from sklearn.model_selection import train_test_split
 import random
 
-# Test (Andrei)
-ssl._create_default_https_context = ssl._create_unverified_context
-
 # Store the activation functions along with their derivatives
 def sigmoid(x, derivative=False):
     x = np.clip(x, -100, 100) # Prevent weights from overflowing
@@ -21,7 +18,6 @@ def sigmoid(x, derivative=False):
     return 1 / (1 + np.exp(-x))
 
 # Custom loss function with optional derivative
-###NNN_loss_counter = 0
 def NNN_loss(y_pred, y_true, derivative=False):
     if derivative:
         grad = np.copy(y_pred)
@@ -51,7 +47,7 @@ adam_ = False
 if adam_:
     LEARNING_RATE = 0.001
 elif nesterov_:
-    LEARNING_RATE = .01
+    LEARNING_RATE = .1
 else:
     LEARNING_RATE = 1
 
