@@ -9,12 +9,15 @@ class Layer:
         """
         self.z = None
         self.activation = activation
+
         
         # Customized Xavier initialization, taking into account bias 
         if xavier:
             scale = np.sqrt(6 / (input_size + output_size + 1))
             self.weights = np.random.uniform(-scale, scale, (input_size + 1, output_size))
-
+        else:
+            #set the number of weights + 1 to absorb the bias
+            self.weights = np.random.randn(input_size + 1, output_size) * 0.1
         # Accumulator for gradients
         self.grad_weights = np.zeros_like(self.weights)
         self.inputs = None

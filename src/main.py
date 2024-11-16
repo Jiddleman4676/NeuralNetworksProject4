@@ -31,8 +31,8 @@ def NNN_loss(y_pred, y_true, derivative=False):
 
 ### Flags for different datasets
 
-run_digits = True
-run_covtype = False
+run_digits = False
+run_covtype = True
 
 ###
 
@@ -52,8 +52,8 @@ else:
     LEARNING_RATE = 1
 
 if run_covtype:
-    EPOCHS = 10    
-    layer_sizes = [54, 128, 128, 7]
+    EPOCHS = 10
+    layer_sizes = [54, 128, 128, 128, 7]
     # Fetch the Forest Covertypes dataset
     forest = fetch_covtype()
 
@@ -68,10 +68,10 @@ if run_covtype:
     X = (X - data_min) / (data_max - data_min)
     
     # Split data into train partition and test partition
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0, test_size=0.99)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0, test_size=0.95)
     _, X_test, _, y_test = train_test_split(X_test, y_test, random_state=0, test_size=0.1)
     # Define the FNN model with 784 input neuron, 64 hidden neurons in 2 layers, and 10 output neuron
-    nn = FeedforwardNeuralNetwork(layer_sizes=layer_sizes, activations=[sigmoid,sigmoid,sigmoid], xavier=xavier, nesterov_=nesterov_, adam_=adam_)
+    nn = FeedforwardNeuralNetwork(layer_sizes=layer_sizes, activations=[sigmoid, sigmoid,sigmoid,sigmoid], xavier=xavier, nesterov_=nesterov_, adam_=adam_)
 
     print("training")
     print(f"Layers: {layer_sizes[1:-1]} N: {len(X_train)}, LR: {LEARNING_RATE}, E: {EPOCHS}")
