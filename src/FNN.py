@@ -6,11 +6,13 @@ class FeedforwardNeuralNetwork:
     Initializes the network layers with specified sizes and activation functions.
     Each layer connects to the next, forming a feedforward structure.
     """
-    def __init__(self, layer_sizes, activations):
+    def __init__(self, layer_sizes, activations, xavier, nesterov_, adam_):
         # Initialize the layers of the network
         self.layers = []
         for i in range(len(layer_sizes) - 1):
-            self.layers.append(Layer(layer_sizes[i], layer_sizes[i+1], activations[i]))
+            self.layers.append(Layer(layer_sizes[i], layer_sizes[i+1], activations[i], xavier))
+        self.nesterov_ = nesterov_
+        self.adam_ = adam_
 
     def forward(self, x):
         """
@@ -40,21 +42,26 @@ class FeedforwardNeuralNetwork:
             layer.weights -= learning_rate * (layer.grad_weights / batch_size)
             layer.grad_weights.fill(0)
 
-    def adam(self, learning_rate, batch_size, b1=0.9, b2=0.999):
+    def adam(self, learning_rate, batch_size, b1=0.9, b2=0.999, epsilon=1e-8):
         """
-        Performs adams algorithm to update weights for each layer.
+        Performs Adam optimization to update weights for each layer.
+        :param learning_rate: Learning rate for updates.
+        :param batch_size: Number of samples in a batch.
+        :param b1: Decay rate for the first moment.
+        :param b2: Decay rate for the second moment.
+        :param epsilon: Small constant for numerical stability.
         """
         for layer in self.layers:
             layer.t += 1
             layer.m = b1 * layer.m + (1 - b1) * (layer.grad_weights / batch_size)
             layer.v = b2 * layer.v + (1 - b2) * (layer.grad_weights / batch_size) ** 2
 
-            #correct bias
+            # Correct bias
             m_h = layer.m / (1 - b1 ** layer.t)
             v_h = layer.v / (1 - b2 ** layer.t)
 
-            #update weights
-            layer.weights -= learning_rate * m_h / (np.sqrt(v_h) + 1e-8)
+            # Update weights
+            layer.weights -= learning_rate * m_h / (np.sqrt(v_h) + epsilon)
             layer.grad_weights.fill(0)
 
     def nesterov(self, learning_rate, batch_size, momentum=0.85):
@@ -92,5 +99,9 @@ class FeedforwardNeuralNetwork:
 
                 # After processing batch, choose to use adams algorithm or gd
 
-                self.gd(learning_rate, batch_size)
-                #self.adam(learning_rate, batch_size)
+                if self.adam_:
+                    self.adam(learning_rate, batch_size)
+                elif self.nesterov_:
+                    self.nesterov(learning_rate, batch_size)
+                else:
+                    self.gd(learning_rate, batch_size)

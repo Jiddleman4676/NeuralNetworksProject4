@@ -33,17 +33,30 @@ def NNN_loss(y_pred, y_true, derivative=False):
 
     return np.mean(-y_pred[range(len(y_pred)), y_true])
 
-# Flags for different experiments
+### Flags for different datasets
 
 run_digits = True
-run_covtype = False 
+run_covtype = False
 
-LEARNING_RATE = 1
-EPOCHS = 30
-TEST_SIZE = 10000
+###
+
+### Flags for different algorithms
+
+xavier = True
+# (set either nesterov_ or adam_ to true or neither for vanilla GD)
+nesterov_ = True
+adam_ = False
+
+####
+if adam_:
+    LEARNING_RATE = 0.001
+elif nesterov_:
+    LEARNING_RATE = .01
+else:
+    LEARNING_RATE = 1
 
 if run_covtype:
-    
+    EPOCHS = 10    
     layer_sizes = [54, 128, 128, 7]
     # Fetch the Forest Covertypes dataset
     forest = fetch_covtype()
@@ -62,7 +75,7 @@ if run_covtype:
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0, test_size=0.99)
     _, X_test, _, y_test = train_test_split(X_test, y_test, random_state=0, test_size=0.1)
     # Define the FNN model with 784 input neuron, 64 hidden neurons in 2 layers, and 10 output neuron
-    nn = FeedforwardNeuralNetwork(layer_sizes=layer_sizes, activations=[sigmoid,sigmoid,sigmoid])
+    nn = FeedforwardNeuralNetwork(layer_sizes=layer_sizes, activations=[sigmoid,sigmoid,sigmoid], xavier=xavier, nesterov_=nesterov_, adam_=adam_)
 
     print("training")
     print(f"Layers: {layer_sizes[1:-1]} N: {len(X_train)}, LR: {LEARNING_RATE}, E: {EPOCHS}")
@@ -114,6 +127,8 @@ if run_covtype:
 # Handwritten digit classification using MNIST
 if(run_digits):
     layer_sizes = [784, 128, 128, 10]
+    EPOCHS = 100
+    TEST_SIZE = 10000
 
     # Hand written characters
     # https://www.openml.org/d/554
@@ -133,7 +148,7 @@ if(run_digits):
     y_test = y_test[sample_indices_test]
 
     # Define the FNN model with 784 input neuron, 64 hidden neurons in 2 layers, and 10 output neuron
-    nn = FeedforwardNeuralNetwork(layer_sizes=layer_sizes, activations=[sigmoid,sigmoid,sigmoid])
+    nn = FeedforwardNeuralNetwork(layer_sizes=layer_sizes, activations=[sigmoid,sigmoid,sigmoid], xavier=xavier, nesterov_=nesterov_, adam_=adam_)
 
     print("training")
     print(f"Layers: {layer_sizes[1:-1]} N: {len(X_train)}, LR: {LEARNING_RATE}, E: {EPOCHS}")

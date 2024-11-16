@@ -1,36 +1,25 @@
 import numpy as np
 
-def dot_product(a, b):
-    result = []
-    for i in range(len(a)):
-        row_result = []
-        for j in range(len(b[0])):
-            sum_value = 0
-            for k in range(len(b)):
-                sum_value += a[i][k] * b[k][j]
-            row_result.append(sum_value)
-        result.append(row_result)
-    return result
-
 class Layer:
 
-    def __init__(self, input_size, output_size, activation):
+    def __init__(self, input_size, output_size, activation, xavier):
         """
         Initializes the layer with Xavier initialization for weights,
         activation function, and gradient accumulator for weights.
         """
         self.z = None
         self.activation = activation
-
-        # Customized Xavier initialization, taking into account bias
-        scale = np.sqrt(6 / (input_size + output_size + 1))
-        self.weights = np.random.uniform(-scale, scale, (input_size + 1, output_size))
+        
+        # Customized Xavier initialization, taking into account bias 
+        if xavier:
+            scale = np.sqrt(6 / (input_size + output_size + 1))
+            self.weights = np.random.uniform(-scale, scale, (input_size + 1, output_size))
 
         # Accumulator for gradients
         self.grad_weights = np.zeros_like(self.weights)
         self.inputs = None
 
-        # Variables for Nesterov momentum
+        # Variables for Nesterov and Adam momentum
         self.m = np.zeros_like(self.weights)  # First moment vector
         self.v = np.zeros_like(self.weights)  # Second moment vector
         self.b1 = 0.9  # Decay rate for first moment
